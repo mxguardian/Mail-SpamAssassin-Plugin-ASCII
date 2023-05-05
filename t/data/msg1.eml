@@ -1,0 +1,400 @@
+Received: from in03.mxguardian.net ([172.16.3.157])
+	by localhost (cf01.mxguardian.net [172.16.0.84]) (MXG, port 10024)
+	with ESMTP id 1lerdn12_vcE for <redacted@example.com>;
+	Wed, 22 Mar 2023 23:09:39 +0000 (UTC)
+Received: from EUR02-AM0-obe.outbound.protection.outlook.com (mail-am0eur02on2070b.outbound.protection.outlook.com [IPv6:2a01:111:f400:fe13::70b])
+	by in03.mxguardian.net (Postfix) with ESMTPS id 62B3682BE21
+	for <redacted@example.com>; Wed, 22 Mar 2023 23:09:39 +0000 (UTC)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=i4Gq6WLAWT+KW7IcR8gTloUGDcqu+EVNBsVp2sEKilGSsQCuI1KrzGKLNkbvqLQ1aVn59KHRt24cvfglmokh2hENQ/dWv6Kd0RJ5OFPelnw/5+vTXZ88mTDjmtGGndyfWpYuZfNDKnTgARyCGyLwVBVdRgOw1vRDQDmDbpjwb6rYmqSGf9IfAYbruowAI1oa0UYJdceuEvqcW3oi5TbveGoye8+u21d4rhQVWtMrlcxQygjcxnrvYoOLzQb8xopuWRQDZnrwPChqXtBGLb4d+rCp8k011z77I0QcO0G4QVEk3krNZRQ5EIL342kQo6gujIGcO4AHZil9W9WJ1n2NUg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=8+I0R/pyWmCBsSbJ7H5FVfu3pGn2NA2LeQ45PEITgCU=;
+ b=kDB/sEnhfjDas0EA75TkPKcfiNwM8b8j4NtEz/S0S1hWz4L+Y0Ux25PJk5Emisp6HVj0J8O0iUI1DXnTSfMMcUZP8GUWz27TR1GztbgfTA0JK3DLnGdq9LkgXpsp2/uDFWYnZ2ZUSLYs97JVJlfaBLO+OsQYCMNUvj1Bk6jOwcxlII+k5lex0Hr0hKDQPpM7DTp3U9Amw0wQ9h286CxMADeGVMzyAlgbmkr4sX6RSOsurjkJz566EARaVI73PB7Yn+hOIND8+EbUbMQb7kBhPhCopyc17FKb/sJDDYwd2e5iSes3/wczC5CvucuOpQIioAqIY0IV56pFURnr7TjPlw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=softfail (sender ip
+ is 103.114.217.169) smtp.rcpttodomain=boothdg.com
+ smtp.mailfrom=qamarketing.co.uk; dmarc=fail (p=reject sp=reject pct=0)
+ action=none header.from=qamarketing.co.uk; dkim=none (message not signed);
+ arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=qaerpsolutions.onmicrosoft.com; s=selector2-qaerpsolutions-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=8+I0R/pyWmCBsSbJ7H5FVfu3pGn2NA2LeQ45PEITgCU=;
+ b=NCHVyjjNpw4+dPslQJvp6tNnnCrBaad8Hiso2bDzr6P0VL7X2HW9Cg/nbh9vJkmPObLKUFFVeQF5/XuNxtcuLmmayqTPM9w+jZi9Care9sGp6WTbGbcI00Hf4A3wx9ULQgKPYrMyqD+J5B+N4wQXqRq/+p+QMl8KxdlnHJur1jo=
+Received: from DUZPR01CA0045.eurprd01.prod.exchangelabs.com
+ (2603:10a6:10:468::20) by GV1P193MB2230.EURP193.PROD.OUTLOOK.COM
+ (2603:10a6:150:23::17) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6178.37; Wed, 22 Mar
+ 2023 23:09:36 +0000
+Received: from DBAEUR03FT039.eop-EUR03.prod.protection.outlook.com
+ (2603:10a6:10:468:cafe::4) by DUZPR01CA0045.outlook.office365.com
+ (2603:10a6:10:468::20) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6178.37 via Frontend
+ Transport; Wed, 22 Mar 2023 23:09:36 +0000
+X-MS-Exchange-Authentication-Results: spf=softfail (sender IP is
+ 103.114.217.169) smtp.mailfrom=qamarketing.co.uk; dkim=none (message not
+ signed) header.d=none;dmarc=fail action=none header.from=qamarketing.co.uk;
+Received-SPF: SoftFail (protection.outlook.com: domain of transitioning
+ qamarketing.co.uk discourages use of 103.114.217.169 as permitted sender)
+Received: from WIN-CLJ1B0GQ6JP (103.114.217.169) by
+ DBAEUR03FT039.mail.protection.outlook.com (100.127.142.225) with Microsoft
+ SMTP Server id 15.20.6222.17 via Frontend Transport; Wed, 22 Mar 2023
+ 23:09:35 +0000
+From: "Warning: Access EXPIRED Today, Wednesday, March 22, 2023"
+ <9491@qamarketing.co.uk>
+Subject: Password Notification Wednesday, March 22, 2023
+To: "REDACTED" <recipient@example.com>
+Content-Type: multipart/alternative; boundary="XwKnTviMRIt8mrtkqIlVneAbpD=_UnmgmB"
+MIME-Version: 1.0
+Date: Wed, 22 Mar 2023 23:10:02 -0700
+Message-Id: <220220230310232E3F11B375$21DB7D3BDF@qamarketing.co.uk>
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DBAEUR03FT039:EE_|GV1P193MB2230:EE_
+X-MS-Office365-Filtering-Correlation-Id: 1f1be7f3-489d-4030-c6dc-08db2b2a8124
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info:
+	go5cEml1P3wPgmpd7U/JavA1M9wW9guV7dVzPpDZZJCT4UddoR/U97E96SSxYKD0veL1J5U6ae6/UKYUHqmBNpUWze2YVL9x37N0a90WTRy3Hnvmbws4oiiyWa16jRYLix+kIUW9qZ8q6cmQhaFmAaDxhFd7J3Yggs8fu8PUBGA6PzrZtmHV/oU/i8gaRAtGX47QPr1kL7m3Pp9r8lcIQOFR2PXF1zA/8uiZAcnpXiQCddq6EzN4NgKuq33IRjHuEUODHmaD8Y7k2sqHdISqiTRSKi10bNHt8F86cSyXlNn5OrtfkImqzFbKgcJaPxTcUkTjzcgLaEPbe+hk9XCG+/AnXafe399AN9AWcQcj34Cze6PVK2CYOc/mUvcBU8QjcxGO1VuJFH5LlL+EjbRMFw9l7YvO1jEvveBvctangsGDyFKWYlEq+LdqRvC76+agoDa8oM0kHNM7/qW8whYkPR6v+041/k8pzeLZ+ugVQHFEcekR1uQSM4a3cSaoyg328/+rNnwltuDL7LVoZeSRY/ZXfi7uxwNSyuQGZJ/Zr9pztHobshIear+YYdZcF93jMNxkJTVeNvt2IPydT41ooQw9kgoqmvmoYHIcEOYaz1fldHSC+xLk0b+AJWcwHtc3GFt+qs+Q4M3nvt4a8WsFxU5u/7f7mivye4UnKlXs1TOlM3R2+grjr4QQ56M3aiirwDE/wNxikMQeywSdaYhpdsWPrTl4hSOptfgqViscZb12LjVi4Gx7zyNI5NBYIX9wwt189M6Hg1Edwszcm6+9oP1VZsI7gRYMR+NuSLcQm+4mxtijJdArO3N+78mo6HEOuI/mVqbXPnD+BxM7rCGa7DBrcvX3qBCGJyCEupIzAdBKRBSeF35xkph7jbvMBo9t
+X-Forefront-Antispam-Report:
+	CIP:103.114.217.169;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:WIN-CLJ1B0GQ6JP;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230025)(39860400002)(136003)(396003)(346002)(376002)(451199018)(46966006)(40470700004)(36840700001)(966005)(15974865002)(34020700004)(3480700007)(66574015)(2616005)(956004)(36736006)(47076005)(82310400005)(298455003)(316002)(478600001)(6486002)(6496006)(33656002)(5660300002)(6666004)(83380400001)(186003)(356005)(26005)(86362001)(166002)(40460700003)(70206006)(336012)(81166007)(82740400003)(36860700001)(6916009)(70586007)(40480700001)(15188155005)(9316004)(41300700001)(8676002)(2906002)(8936002)(36756003)(16799955002)(55000400009)(88722005)(44860500002)(36900700001)(19623215001);DIR:OUT;SFP:1102;
+X-OriginatorOrg: qamarketing.co.uk
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 Mar 2023 23:09:35.5536
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 1f1be7f3-489d-4030-c6dc-08db2b2a8124
+X-MS-Exchange-CrossTenant-Id: 315a3fb9-3527-44d6-bb4c-d51a69b66e9a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=315a3fb9-3527-44d6-bb4c-d51a69b66e9a;Ip=[103.114.217.169];Helo=[WIN-CLJ1B0GQ6JP]
+X-MS-Exchange-CrossTenant-AuthSource:
+	DBAEUR03FT039.eop-EUR03.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: GV1P193MB2230
+
+This is a multi-part message in MIME format
+
+--XwKnTviMRIt8mrtkqIlVneAbpD=_UnmgmB
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+
+Of&#x034F;fic&#x034F;e 36&#x034F;5
+
+Hello Kneely,
+
+Your &#99;&#117;&#114;&#114;&#101;&#110;&#116; &#112;&#97;&#115;&#115;&#119=
+;&#111;&#114;&#100; for (redacted@example.com) &#101;&#120;&#112;&#105;&#11=
+4;&#101;&#115; in 24hrs Time.
+
+ST&#x034F;AY CONNECTED W&#x034F;ITH CURREN&#x034F;T PASSWOR&#x034F;D
+ http://vk.com/away.php?to=3Dhttp://mut.qry.simoesplumbing.com.au./?YYY%3A%=
+2F%2F%23.a25lZWx5QGJvb3RoZGcuY29t
+=A9 2=AD0=AD2=AD3 example.com I=ADT H=ADe=ADl=ADp D=ADe=ADs=ADk
+=A0
+<DIV=A0
+=A0
+=A0
+,
+=A0
+=A0
+=A0
+
+=A0
+
+=A0
+=A0
+=A0
+,
+=A0
+=A0
+=A0
+
+=A0
+
+=A0
+=A0
+=A0
+,
+=A0
+=A0
+=A0
+
+=A0
+
+=A0
+=A0
+=A0
+,
+=A0
+=A0
+=A0
+
+=A0
+
+
+
+
+I met with KBR at their Leatherhead offices in the UK.
+=A0
+Attendees were :
+=A0
+Richard Rippon-Swaine, COO Project Delivery
+Mark Claxton, Program Director
+Kevin Widdows, Project Manager
+=A0
+I also was introduced to their VP, Integrated Solutions who was named Paul =
+Baillie ??.
+=A0
+KBR Leatherhead had been briefed on our meeting with KBR Houston but not on=
+ the specifics of our project.
+=A0
+They gave a general overview of the capabilities of the UK offices which wa=
+s basically around 1,400 core people with access to additional office space=
+ and a pool of contractors that they had previously employed to enable them=
+ to ramp up/down as the work required.
+=A0
+They gave an overview of their experience in modular design highlighting ke=
+y issues such as incorporating pipe-racks into the modules, maximising comp=
+letion in the fabrication yard, pre-commissioning in the yard and incorpora=
+ting equipment rooms and field IO into the modules.=A0 Presentation is atta=
+ched (I have stored this on Sharepoint) but overall I thought they had a be=
+tter understanding and experience of the issues involved with modular desig=
+n than KBR Houston.
+=A0
+They then went through a couple of key projects;
+=A0
+Kevin is the Project Manager for the Browse Project (Offshore) which consis=
+ts of two very large FPSO&rsquo;s which include ~50,000 MT of modular topsi=
+des.=A0 The topsides will include ~10 modules ranging between 5-10,000 MT e=
+ach.=A0 The modules will be highly integrated to minimise the hook up and c=
+ommissioning requirements on the ship.
+=A0
+Mark is the Project Manager for the Pluto Train 1 brownfield expansion whic=
+h reconfigures the onshore LNG train to be able to process lean gas from th=
+e Scarborough field.=A0 This includes bringing in a number of large process=
+ modules which need to be installed on operating plant.=A0 Modules will be =
+landed at the Port of Dampier and transported up the hill and then backed i=
+nto the Pluto site.=A0 Mark agreed that the haul route from the port to the=
+ Pluto site was challenging (especially the ammonia pipeline road crossing)=
+ and that transport of modules past the Pluto site would be severely size r=
+estricted.
+=A0
+Cheers,
+Warren Churchill |=A0Project Engineering Manager
+Level 13, 37 St Georges Tce, Perth WA 6000
+T:=A0 +61 415 000 564
+E:=A0=A0 redacted@example.com mailto:redacted@example.com
+W: www.example.com http://www.example.com
+
+--XwKnTviMRIt8mrtkqIlVneAbpD=_UnmgmB
+Content-Type: text/html; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+
+<div><p><span style=3D"color:#EA0000"><span style=3D"font-size:32px;"><span=
+ style=3D"background-color:#fcf5f7;">Of&#x034F;fic&#x034F;e 36&#x034F;5</sp=
+an></span></span></p></p></p> <FONT size=3D3 face=3D"">Hello Kneely, </p>Yo=
+ur &#99;&#117;&#114;&#114;&#101;&#110;&#116; &#112;&#97;&#115;&#115;&#119;&=
+#111;&#114;&#100; for (<FONT color=3Dblue>redacted@example.com</font>) &#10=
+1;&#120;&#112;&#105;&#114;&#101;&#115; in 24hrs Time.<br></p> <A href=3D"ht=
+tp://vk.com/away.php?to=3Dhttp://dvv.27u.simoesplumbing.com.au./?YYY%3A%2F%=
+2F%23.a25lZWx5QGJvb3RoZGcuY29t"> <DIV id=3D"JP0SfFuD77KZlMMS" style=3D"back=
+ground-color:#EA0000;display: inline-block; padding: 5px; color:#fcf5f7"> S=
+T&#x034F;AY CONNECTED W&#x034F;ITH CURREN&#x034F;T PASSWOR&#x034F;D </DIV><=
+/a><br><span style=3D"color:6F6569"><br aria-hidden=3D"true"><FONT size=3D3=
+ face=3D"">&copy; 2&shy;0&shy;2&shy;3 example.com I&shy;T H&shy;e&shy;l&shy=
+;p D&shy;e&shy;s&shy;k</span> &nbsp;</FONT></FONT></P><DIV<B></SPAN></SPAN>=
+<P>&nbsp;</P>&nbsp; <P>&nbsp;</P>, <P>&nbsp;</P>&nbsp; <P>&nbsp;</p><p>&nbs=
+p;</p><p>&nbsp;</P>&nbsp; <P>&nbsp;</P>, <P>&nbsp;</P>&nbsp; <P>&nbsp;</p><=
+p>&nbsp;</p><p>&nbsp;</P>&nbsp; <P>&nbsp;</P>, <P>&nbsp;</P>&nbsp; <P>&nbsp=
+;</p><p>&nbsp;</p><p>&nbsp;</P>&nbsp; <P>&nbsp;</P>, <P>&nbsp;</P>&nbsp; <P=
+>&nbsp;</p><p>&nbsp;</P> <html xmlns:v=3D"urn:schemas-microsoft-com:vml" xm=
+lns:o=3D"urn:schemas-microsoft-com:office:office" xmlns:w=3D"urn:schemas-mi=
+crosoft-com:office:word" xmlns:m=3D"http://schemas.microsoft.com/office/200=
+4/12/omml" xmlns=3D"http://www.w3.org/TR/REC-html40"> <head>
+<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Diso-8859-=
+1">
+  <meta name=3D"Generator" content=3D"Microsoft Word 15 (filtered medium)">=
+ <!--[if !mso]><style>v\:* {behavior:url(#default#VML);} o\:* {behavior:url=
+(#default#VML);} w\:* {behavior:url(#default#VML);} .shape {behavior:url(#d=
+efault#VML);} </style><![endif]--><style><!-- /* Font Definitions */ @font-=
+face {font-family:"Cambria Math"; panose-1:2 4 5 3 5 4 6 3 2 4;} @font-face=
+ {font-family:Calibri; panose-1:2 15 5 2 2 2 4 3 2 4;} @font-face {font-fam=
+ily:Cambria; panose-1:2 4 5 3 5 4 6 3 2 4;} /* Style Definitions */ p.MsoNo=
+rmal, li.MsoNormal, div.MsoNormal {margin:0cm; font-size:11.0pt; font-famil=
+y:"Calibri",sans-serif;} a:link, span.MsoHyperlink {mso-style-priority:99; =
+color:blue; text-decoration:underline;} span.EmailStyle20 {mso-style-type:p=
+ersonal-reply; font-family:"Calibri",sans-serif; color:windowtext;} .MsoChp=
+Default {mso-style-type:export-only; font-size:10.0pt;} @page WordSection1 =
+{size:612.0pt 792.0pt; margin:72.0pt 72.0pt 72.0pt 72.0pt;} div.WordSection=
+1 {page:WordSection1;} /* List Definitions */ @list l0 {mso-list-id:1202984=
+948; mso-list-template-ids:882391072;} @list l0:level1 {mso-level-number-fo=
+rmat:bullet; mso-level-text:?; mso-level-tab-stop:36.0pt; mso-level-number-=
+position:left; text-indent:-18.0pt; mso-ansi-font-size:10.0pt; font-family:=
+Symbol;} @list l0:level2 {mso-level-number-format:bullet; mso-level-text:?;=
+ mso-level-tab-stop:72.0pt; mso-level-number-position:left; text-indent:-18=
+.0pt; mso-ansi-font-size:10.0pt; font-family:Symbol;} @list l0:level3 {mso-=
+level-number-format:bullet; mso-level-text:?; mso-level-tab-stop:108.0pt; m=
+so-level-number-position:left; text-indent:-18.0pt; mso-ansi-font-size:10.0=
+pt; font-family:Symbol;} @list l0:level4 {mso-level-number-format:bullet; m=
+so-level-text:?; mso-level-tab-stop:144.0pt; mso-level-number-position:left=
+; text-indent:-18.0pt; mso-ansi-font-size:10.0pt; font-family:Symbol;} @lis=
+t l0:level5 {mso-level-number-format:bullet; mso-level-text:?; mso-level-ta=
+b-stop:180.0pt; mso-level-number-position:left; text-indent:-18.0pt; mso-an=
+si-font-size:10.0pt; font-family:Symbol;} @list l0:level6 {mso-level-number=
+-format:bullet; mso-level-text:?; mso-level-tab-stop:216.0pt; mso-level-num=
+ber-position:left; text-indent:-18.0pt; mso-ansi-font-size:10.0pt; font-fam=
+ily:Symbol;} @list l0:level7 {mso-level-number-format:bullet; mso-level-tex=
+t:?; mso-level-tab-stop:252.0pt; mso-level-number-position:left; text-inden=
+t:-18.0pt; mso-ansi-font-size:10.0pt; font-family:Symbol;} @list l0:level8 =
+{mso-level-number-format:bullet; mso-level-text:?; mso-level-tab-stop:288.0=
+pt; mso-level-number-position:left; text-indent:-18.0pt; mso-ansi-font-size=
+:10.0pt; font-family:Symbol;} @list l0:level9 {mso-level-number-format:bull=
+et; mso-level-text:?; mso-level-tab-stop:324.0pt; mso-level-number-position=
+:left; text-indent:-18.0pt; mso-ansi-font-size:10.0pt; font-family:Symbol;}=
+ @list l1 {mso-list-id:1246454144; mso-list-template-ids:1975649928;} @list=
+ l1:level1 {mso-level-number-format:bullet; mso-level-text:?; mso-level-tab=
+-stop:36.0pt; mso-level-number-position:left; text-indent:-18.0pt; mso-ansi=
+-font-size:10.0pt; font-family:Symbol;} @list l1:level2 {mso-level-number-f=
+ormat:bullet; mso-level-text:o; mso-level-tab-stop:72.0pt; mso-level-number=
+-position:left; text-indent:-18.0pt; mso-ansi-font-size:10.0pt; font-family=
+:"Courier New"; mso-bidi-font-family:"Times New Roman";} @list l1:level3 {m=
+so-level-number-format:bullet; mso-level-text:?; mso-level-tab-stop:108.0pt=
+; mso-level-number-position:left; text-indent:-18.0pt; mso-ansi-font-size:1=
+0.0pt; font-family:Symbol;} @list l1:level4 {mso-level-number-format:bullet=
+; mso-level-text:?; mso-level-tab-stop:144.0pt; mso-level-number-position:l=
+eft; text-indent:-18.0pt; mso-ansi-font-size:10.0pt; font-family:Symbol;} @=
+list l1:level5 {mso-level-number-format:bullet; mso-level-text:?; mso-level=
+-tab-stop:180.0pt; mso-level-number-position:left; text-indent:-18.0pt; mso=
+-ansi-font-size:10.0pt; font-family:Symbol;} @list l1:level6 {mso-level-num=
+ber-format:bullet; mso-level-text:?; mso-level-tab-stop:216.0pt; mso-level-=
+number-position:left; text-indent:-18.0pt; mso-ansi-font-size:10.0pt; font-=
+family:Symbol;} @list l1:level7 {mso-level-number-format:bullet; mso-level-=
+text:?; mso-level-tab-stop:252.0pt; mso-level-number-position:left; text-in=
+dent:-18.0pt; mso-ansi-font-size:10.0pt; font-family:Symbol;} @list l1:leve=
+l8 {mso-level-number-format:bullet; mso-level-text:?; mso-level-tab-stop:28=
+8.0pt; mso-level-number-position:left; text-indent:-18.0pt; mso-ansi-font-s=
+ize:10.0pt; font-family:Symbol;} @list l1:level9 {mso-level-number-format:b=
+ullet; mso-level-text:?; mso-level-tab-stop:324.0pt; mso-level-number-posit=
+ion:left; text-indent:-18.0pt; mso-ansi-font-size:10.0pt; font-family:Symbo=
+l;} @list l2 {mso-list-id:1262565461; mso-list-template-ids:-1285257988;} @=
+list l2:level1 {mso-level-number-format:bullet; mso-level-text:?; mso-level=
+-tab-stop:36.0pt; mso-level-number-position:left; text-indent:-18.0pt; mso-=
+ansi-font-size:10.0pt; font-family:Symbol;} @list l2:level2 {mso-level-numb=
+er-format:bullet; mso-level-text:o; mso-level-tab-stop:72.0pt; mso-level-nu=
+mber-position:left; text-indent:-18.0pt; mso-ansi-font-size:10.0pt; font-fa=
+mily:"Courier New"; mso-bidi-font-family:"Times New Roman";} @list l2:level=
+3 {mso-level-number-format:bullet; mso-level-text:?; mso-level-tab-stop:108=
+.0pt; mso-level-number-position:left; text-indent:-18.0pt; mso-ansi-font-si=
+ze:10.0pt; font-family:Symbol;} @list l2:level4 {mso-level-number-format:bu=
+llet; mso-level-text:?; mso-level-tab-stop:144.0pt; mso-level-number-positi=
+on:left; text-indent:-18.0pt; mso-ansi-font-size:10.0pt; font-family:Symbol=
+;} @list l2:level5 {mso-level-number-format:bullet; mso-level-text:?; mso-l=
+evel-tab-stop:180.0pt; mso-level-number-position:left; text-indent:-18.0pt;=
+ mso-ansi-font-size:10.0pt; font-family:Symbol;} @list l2:level6 {mso-level=
+-number-format:bullet; mso-level-text:?; mso-level-tab-stop:216.0pt; mso-le=
+vel-number-position:left; text-indent:-18.0pt; mso-ansi-font-size:10.0pt; f=
+ont-family:Symbol;} @list l2:level7 {mso-level-number-format:bullet; mso-le=
+vel-text:?; mso-level-tab-stop:252.0pt; mso-level-number-position:left; tex=
+t-indent:-18.0pt; mso-ansi-font-size:10.0pt; font-family:Symbol;} @list l2:=
+level8 {mso-level-number-format:bullet; mso-level-text:?; mso-level-tab-sto=
+p:288.0pt; mso-level-number-position:left; text-indent:-18.0pt; mso-ansi-fo=
+nt-size:10.0pt; font-family:Symbol;} @list l2:level9 {mso-level-number-form=
+at:bullet; mso-level-text:?; mso-level-tab-stop:324.0pt; mso-level-number-p=
+osition:left; text-indent:-18.0pt; mso-ansi-font-size:10.0pt; font-family:S=
+ymbol;} @list l3 {mso-list-id:1341666586; mso-list-template-ids:-1477514382=
+;} @list l3:level1 {mso-level-number-format:bullet; mso-level-text:?; mso-l=
+evel-tab-stop:36.0pt; mso-level-number-position:left; text-indent:-18.0pt; =
+mso-ansi-font-size:10.0pt; font-family:Symbol;} @list l3:level2 {mso-level-=
+number-format:bullet; mso-level-text:?; mso-level-tab-stop:72.0pt; mso-leve=
+l-number-position:left; text-indent:-18.0pt; mso-ansi-font-size:10.0pt; fon=
+t-family:Symbol;} @list l3:level3 {mso-level-number-format:bullet; mso-leve=
+l-text:?; mso-level-tab-stop:108.0pt; mso-level-number-position:left; text-=
+indent:-18.0pt; mso-ansi-font-size:10.0pt; font-family:Symbol;} @list l3:le=
+vel4 {mso-level-number-format:bullet; mso-level-text:?; mso-level-tab-stop:=
+144.0pt; mso-level-number-position:left; text-indent:-18.0pt; mso-ansi-font=
+-size:10.0pt; font-family:Symbol;} @list l3:level5 {mso-level-number-format=
+:bullet; mso-level-text:?; mso-level-tab-stop:180.0pt; mso-level-number-pos=
+ition:left; text-indent:-18.0pt; mso-ansi-font-size:10.0pt; font-family:Sym=
+bol;} @list l3:level6 {mso-level-number-format:bullet; mso-level-text:?; ms=
+o-level-tab-stop:216.0pt; mso-level-number-position:left; text-indent:-18.0=
+pt; mso-ansi-font-size:10.0pt; font-family:Symbol;} @list l3:level7 {mso-le=
+vel-number-format:bullet; mso-level-text:?; mso-level-tab-stop:252.0pt; mso=
+-level-number-position:left; text-indent:-18.0pt; mso-ansi-font-size:10.0pt=
+; font-family:Symbol;} @list l3:level8 {mso-level-number-format:bullet; mso=
+-level-text:?; mso-level-tab-stop:288.0pt; mso-level-number-position:left; =
+text-indent:-18.0pt; mso-ansi-font-size:10.0pt; font-family:Symbol;} @list =
+l3:level9 {mso-level-number-format:bullet; mso-level-text:?; mso-level-tab-=
+stop:324.0pt; mso-level-number-position:left; text-indent:-18.0pt; mso-ansi=
+-font-size:10.0pt; font-family:Symbol;} @list l4 {mso-list-id:1606419333; m=
+so-list-template-ids:-2040785846;} @list l4:level1 {mso-level-number-format=
+:bullet; mso-level-text:?; mso-level-tab-stop:36.0pt; mso-level-number-posi=
+tion:left; text-indent:-18.0pt; mso-ansi-font-size:10.0pt; font-family:Symb=
+ol;} @list l4:level2 {mso-level-number-format:bullet; mso-level-text:?; mso=
+-level-tab-stop:72.0pt; mso-level-number-position:left; text-indent:-18.0pt=
+; mso-ansi-font-size:10.0pt; font-family:Symbol;} @list l4:level3 {mso-leve=
+l-number-format:bullet; mso-level-text:?; mso-level-tab-stop:108.0pt; mso-l=
+evel-number-position:left; text-indent:-18.0pt; mso-ansi-font-size:10.0pt; =
+font-family:Symbol;} @list l4:level4 {mso-level-number-format:bullet; mso-l=
+evel-text:?; mso-level-tab-stop:144.0pt; mso-level-number-position:left; te=
+xt-indent:-18.0pt; mso-ansi-font-size:10.0pt; font-family:Symbol;} @list l4=
+:level5 {mso-level-number-format:bullet; mso-level-text:?; mso-level-tab-st=
+op:180.0pt; mso-level-number-position:left; text-indent:-18.0pt; mso-ansi-f=
+ont-size:10.0pt; font-family:Symbol;} @list l4:level6 {mso-level-number-for=
+mat:bullet; mso-level-text:?; mso-level-tab-stop:216.0pt; mso-level-number-=
+position:left; text-indent:-18.0pt; mso-ansi-font-size:10.0pt; font-family:=
+Symbol;} @list l4:level7 {mso-level-number-format:bullet; mso-level-text:?;=
+ mso-level-tab-stop:252.0pt; mso-level-number-position:left; text-indent:-1=
+8.0pt; mso-ansi-font-size:10.0pt; font-family:Symbol;} @list l4:level8 {mso=
+-level-number-format:bullet; mso-level-text:?; mso-level-tab-stop:288.0pt; =
+mso-level-number-position:left; text-indent:-18.0pt; mso-ansi-font-size:10.=
+0pt; font-family:Symbol;} @list l4:level9 {mso-level-number-format:bullet; =
+mso-level-text:?; mso-level-tab-stop:324.0pt; mso-level-number-position:lef=
+t; text-indent:-18.0pt; mso-ansi-font-size:10.0pt; font-family:Symbol;} ol =
+{margin-bottom:0cm;} ul {margin-bottom:0cm;} --></style><!--[if gte mso 9]>=
+<xml> <o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" /> </xml><![endif]--=
+><!--[if gte mso 9]><xml> <o:shapelayout v:ext=3D"edit"> <o:idmap v:ext=3D"=
+edit" data=3D"1" /> </o:shapelayout></xml><![endif]--> <p>I met with KBR at=
+ their Leatherhead offices in the UK.</p><p>&nbsp;</p><p>Attendees were :</=
+p><p>&nbsp;</p><p>Richard Rippon-Swaine, COO Project Delivery</p><p>Mark Cl=
+axton, Program Director</p><p>Kevin Widdows, Project Manager</p><p>&nbsp;</=
+p><p>I also was introduced to their VP, Integrated Solutions who was named =
+Paul Baillie ??.</p><p>&nbsp;</p><p>KBR Leatherhead had been briefed on our=
+ meeting with KBR Houston but not on the specifics of our project.</p><p>&n=
+bsp;</p><p>They gave a general overview of the capabilities of the UK offic=
+es which was basically around 1,400 core people with access to additional o=
+ffice space and a pool of contractors that they had previously employed to =
+enable them to ramp up/down as the work required.</p><p>&nbsp;</p><p>They g=
+ave an overview of their experience in modular design highlighting key issu=
+es such as incorporating pipe-racks into the modules, maximising completion=
+ in the fabrication yard, pre-commissioning in the yard and incorporating e=
+quipment rooms and field IO into the modules.&nbsp; Presentation is attache=
+d (I have stored this on Sharepoint) but overall I thought they had a bette=
+r understanding and experience of the issues involved with modular design t=
+han KBR Houston.</p><p>&nbsp;</p><p>They then went through a couple of key =
+projects;</p><p>&nbsp;</p><p>Kevin is the Project Manager for the Browse Pr=
+oject (Offshore) which consists of two very large FPSO&rsquo;s which includ=
+e ~50,000 MT of modular topsides.&nbsp; The topsides will include ~10 modul=
+es ranging between 5-10,000 MT each.&nbsp; The modules will be highly integ=
+rated to minimise the hook up and commissioning requirements on the ship.</=
+p><p>&nbsp;</p><p>Mark is the Project Manager for the Pluto Train 1 brownfi=
+eld expansion which reconfigures the onshore LNG train to be able to proces=
+s lean gas from the Scarborough field.&nbsp; This includes bringing in a nu=
+mber of large process modules which need to be installed on operating plant=
+.&nbsp; Modules will be landed at the Port of Dampier and transported up th=
+e hill and then backed into the Pluto site.&nbsp; Mark agreed that the haul=
+ route from the port to the Pluto site was challenging (especially the ammo=
+nia pipeline road crossing) and that transport of modules past the Pluto si=
+te would be severely size restricted.</p><p>&nbsp;</p><p>Cheers,</p><p><str=
+ong>Warren Churchill </strong>|<strong>&nbsp;</strong>Project Engineering M=
+anager<br /> <strong></strong><br /> Level 13, 37 St =
+Georges Tce, Perth WA 6000<br /> <strong>T:</strong>&nbsp; +61 415 269 564<=
+br /> <strong>E:</strong><strong>&nbsp;&nbsp; </strong><a href=3D"mailto:re=
+dacted@example.com" rel=3D"noopener noreferrer" target=3D"_blank">redacted@=
+example.com</a><br /> <strong>W:</strong> <a href=3D"http://www.example.co=
+m" rel=3D"noopener noreferrer" target=3D"_blank">www.example.com</a></p> <=
+/div> </div> </body>
+ </html>
+
+--XwKnTviMRIt8mrtkqIlVneAbpD=_UnmgmB--

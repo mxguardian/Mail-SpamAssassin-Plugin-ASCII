@@ -1,0 +1,63 @@
+Received: from in01.mxguardian.net ([172.16.1.135])
+	by localhost (cf01.mxguardian.net [172.16.0.84]) (MXG, port 10024)
+	with ESMTP id 4j3mTRCQUTRj for <redacted@example.com>;
+	Fri, 28 Apr 2023 06:50:59 +0000 (UTC)
+Received: from mail.gt7.randcoach.co.za (mail.gt7.randcoach.co.za [176.74.21.89])
+	by in01.mxguardian.net (Postfix) with ESMTPS id 22510880503
+	for <redacted@example.com>; Fri, 28 Apr 2023 06:50:59 +0000 (UTC)
+Received: from [192.168.0.106] (vc-gp-n-41-13-204-91.umts.vodacom.co.za [41.13.204.91])
+	by mail.gt7.randcoach.co.za (Postfix) with ESMTPSA id 9AB60B39EE
+	for <redacted@example.com>; Fri, 28 Apr 2023 08:50:56 +0200 (SAST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gt7.randcoach.co.za;
+	s=default; t=1682664657;
+	bh=VBAy75oJLxnidWUOX5U9f8Z47KThFFx8ubztxzLW3GM=; h=From:To:Subject;
+	b=iWCOzIFCFKO4WRRPBW/2QJXheDFTk+bewQ7yZYfItfHhRhR4Zj9trlN1ziE5mrd9e
+	 9Cvinlv+OMfJCRIGYvJUmqgyNIAsmdVTRY2YWrMSx2WcgVtl8j2mU9ZMbXAydZqvXr
+	 lzNVf6sdJHuT+Y6/bNIw9I4vTDKz3NOR2Ts1Qav0=
+Authentication-Results: mail.gt7.randcoach.co.za;
+        spf=pass (sender IP is 41.13.204.91) smtp.mailfrom=paulh@gt7.randcoach.co.za smtp.helo=[192.168.0.106]
+Received-SPF: pass (mail.gt7.randcoach.co.za: connection is authenticated)
+Message-ID: <28042023085056060GGh77pfXqRRd870309@gt7.randcoach.co.za>
+Date: Fri, 28 Apr 2023 08:50:56 +0200
+From: =?ISO-8859-1?Q?paul_hamilton?= <paulh@gt7.randcoach.co.za>
+To: "REDACTED" <recipient@example.com>
+Mime-Version: 1.0
+Subject: re: winter green
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+Our Bigbag ultra-Green lawn seeds can be used to revive an existing lawn wi=
+thout having to remove the old lawn.
+
+
+Throw our ultra-Green lawn seeds over your existing lawn and in 5 days a ne=
+w lawn will form over the old lawn, there is no need for the hard work of r=
+emoving the old lawns.
+
+
+Don't have an exisitng lawn? Bare soil to grass in 5 days.
+
+
+Our ultra-Green lawn seeds is a hybrid everGreen that forms a thick carpet =
+of grass and spreads and grows through runners, and can be planted any time=
+ of the year. As ultra-Green is an everGreen our lawns will remain green ri=
+ght through the year.
+
+
+you may plant our our ultra-Green lawn seeds in full sun, shade or under tr=
+ees to have thick carpet of green lawn.
+
+
+nationwide delivery, anywhere in South Africa, R385 per 25 square metre bag.
+
+
+to find out more, reply to my email, call 011 083 8044 or visit our website=
+ at =D1=A1=D1=A1=D1=A1.=D0=AC=D1=96=C9=A1=D0=AC=D0=B0=C9=A1.=CF=B2=D0=BE.z=
+=D0=B0
+
+
+
+kind regards
+paul hamilton
+Yeshua in Charge
+
