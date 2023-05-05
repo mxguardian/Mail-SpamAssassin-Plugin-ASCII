@@ -5,7 +5,7 @@ use MXG::App;
 use MXG::Service::DB;
 use Pod::Usage;
 use XML::Parser;
-use Term::ANSIColor;
+use Data::Dumper;
 use JSON;
 use Encode;
 use utf8;
@@ -345,16 +345,14 @@ sub list_ascii {
 #
 sub generate_map {
     my $chars = $db->fetchAll("SELECT * FROM `char` WHERE ascii_equivalent IS NOT NULL ORDER BY dcode");
-    my $count = 0;
     foreach my $char (@$chars) {
-        $char->{ascii_equivalent} =~ s/\s+//g;
-        next if $char->{ascii_equivalent} eq '';
         my $hcode = $char->{code};
-        my $str = chr(hex($hcode));
-        printf "%s %-5s", $str, uc($char->{ascii_equivalent});
-        print((++$count % 20) ? ' ' : "\n");
+        my $ascii = $char->{ascii_equivalent};
+        $ascii = ' ' if ($ascii eq '');
+        $ascii = join('+', map { sprintf("%02X", ord($_)) } split //, $ascii);
+        printf "%s %s\n", $hcode, $ascii;
     }
-    print "\n";
+    # print "\n";
 }
 
 sub test_map {
@@ -366,18 +364,26 @@ sub test_map {
     ѡѡѡ.ЬіɡЬаɡ.ϲо.zа
     A\x{030A}
     A\x{20DD}
+    あ
+    The pass͏word­ for your ­em͏ail ­expi͏res
 EOF
 
-    local $/;
+    my %map;
     my $filename = '/home/kent/map';
-    open(my $fh, '<:encoding(UTF-8)', $filename) or die "Could not open file '$filename' $!";
-    my %map = split /\s+/, <$fh>;
+    open(my $fh, '<', $filename) or die "Could not open file '$filename' $!";
+    while (<$fh>) {
+        chomp;
+        my ($key,$value) = split /\s+/;
+        my $ascii = join('', map { chr(hex($_)) } split /\+/, $value);
+        $map{chr(hex($key))} = $ascii;
+    }
+    close($fh);
 
-    $test_string =~ s/([\x80-\x{10FFFF}])/defined($map{$1})?$map{$1}:$1/eg;
+    $test_string =~ s/([\x80-\x{10FFFF}])/defined($map{$1})?$map{$1}:''/eg;
 
     # use Unicode::Normalize;
     # $test_string = NFKD($test_string);
-    $test_string =~ s/\p{Combining_Mark}//g;
+    # $test_string =~ s/\p{Combining_Mark}//g;
 
     print $test_string;
 
