@@ -3,10 +3,7 @@ use strict;
 use warnings FATAL => 'all';
 use MXG::App;
 use MXG::Service::DB;
-use LWP::UserAgent;
-use Archive::Zip;
 use Pod::Usage;
-use XML::Parser;
 use Data::Dumper;
 use JSON;
 use Encode;
@@ -14,7 +11,7 @@ use utf8;
 
 =head1 SYNOPSIS
 
- unicode.pl <command> [options]
+ tools/unicode.pl <command> [options]
 
  Commands
      import_ucd           Import Unicode Character Database
@@ -115,6 +112,11 @@ SQL
 # http://www.unicode.org/Public/UCD/latest/ucdxml/ucd.nounihan.grouped.zip
 #
 sub import_ucd {
+
+    use LWP::UserAgent;
+    use XML::Parser;
+    use Archive::Zip;
+
     my $ins_char = $db->prepare("INSERT IGNORE INTO `chars`
         (`hcode`,description,block,script,category,bidi_class,combining_class,
         is_upper,is_lower,is_emoji,is_whitespace,is_printable,
@@ -247,6 +249,9 @@ sub import_ucd {
 # https://www.unicode.org/Public/security/latest/confusables.txt
 #
 sub import_confusables {
+
+    use LWP::UserAgent;
+
     our $upd_char = $db->prepare("UPDATE `chars` SET ascii = ? WHERE hcode = ?");
 
     sub _save_confusables {
@@ -431,29 +436,28 @@ sub generate_map {
 
 sub test_map {
 
+    use lib 'lib';
+    use Mail::SpamAssassin::Plugin::ASCII;
+
     my $body = <<"EOF";
-    Ýou hãve a nèw vòice-mãil
-    PαyPal
-    You havé Reꞓeìved an Enꞓryptéd Company Maíl
-    ѡѡѡ.ЬіɡЬаɡ.ϲо.zа
-    A\x{030A}
-    A\x{20DD}
-    あ
-    The pass͏word­ for your ­em͏ail ­expi͏res
-    💚🍁32 Years older Div0rced🍁💚Un-happy🍁💚BJ MOM💘Ready for fu*c*k💋💘
+Ýou hãve a nèw vòice-mãil
+PαyPal
+You havé Reꞓeìved an Enꞓryptéd Company Maíl
+ѡѡѡ.ЬіɡЬаɡ.ϲо.zа
+A\x{030A}
+A\x{20DD}
+あ
+The pass͏word­ for your ­em͏ail ­expi͏res
+💚🍁32 Years older Div0rced🍁💚Un-happy🍁💚BJ MOM💘Ready for fu*c*k💋💘
 EOF
 
     my %map;
-    my $filename = '/home/kent/map';
-    open(my $fh, '<', $filename) or die "Could not open file '$filename' $!";
-    while (<$fh>) {
+    while (<Mail::SpamAssassin::Plugin::ASCII::DATA>) {
         chomp;
         my ($key,$value) = split /\s+/;
         my $ascii = join('', map { chr(hex($_)) } split /\+/, $value);
         $map{chr(hex($key))} = $ascii;
     }
-    close($fh);
-
 
     # remove zero-width characters and combining marks
     $body =~ s/[\xAD\x{034F}\x{200B}-\x{200F}\x{202A}\x{202B}\x{202C}\x{2060}\x{FEFF}]|\p{Combining_Mark}//g;
