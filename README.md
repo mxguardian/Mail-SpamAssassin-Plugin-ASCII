@@ -25,7 +25,7 @@ would be converted to
 
     You have a new voice-mail
     PayPal
-    You have Received an Encrypted Company Mail
+    You have ReCeived an EnCrypted Company Mail
     www.bigbag.co.za
 
 Unlike other transliteration software, this plugin converts non-ASCII characters
@@ -37,19 +37,18 @@ letters have different meanings than their originals.
 
 Not all non-ASCII characters are converted. For example, the Japanese Hiragana
 character 'あ' is not converted because it does not resemble any ASCII character.
-Characters that have no ASCII equivalent are left unchanged.
+Characters that have no ASCII equivalent are removed from the text.
 
 The plugin also removes zero-width characters such as the zero-width
 space (U+200B) and zero-width non-joiner (U+200C) that are often used to
 obfuscate words.
 
-If you want to write rules that match against the original non-Romanized text,
+If you want to write rules that match against the original non-ASCII text,
 you can still do so by using the standard `body` and `rawbody` rules. The
 converted text is only used when evaluating rules that use the `ascii` rule type.
 
 Note that obfuscation is still possible within the ASCII character set. For example,
 the letter 'O' can be replaced with the number '0' and the letter 'l' can be replaced
 with the number '1' as in "PayPa1 0rder". This plugin does not attempt to catch these
-types of obfuscation.
-Therefore, you still need to use other techniques such as using a character class
-(i.e. /\[O0\]rder/i) or `replace_tags` (i.e. /<O>rder/i) to catch these types of obfuscation.
+types of obfuscation. Therefore, you still need to use other techniques such as using
+a character class or `replace_tags` to catch these types of obfuscation.

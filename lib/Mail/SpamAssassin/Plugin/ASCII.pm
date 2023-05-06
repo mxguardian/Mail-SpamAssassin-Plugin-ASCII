@@ -262,8 +262,15 @@ sub _get_ascii_body {
     }
     $body = $subject . "\n" . $body;
 
+    # remove zero-width characters and combining marks
+    $body =~ s/[\xAD\x{034F}\x{200B}-\x{200F}\x{202A}\x{202B}\x{202C}\x{2060}\x{FEFF}]|\p{Combining_Mark}//g;
+
+    # replace non-ascii characters with ascii equivalents
     my $map = $self->{char_map};
-    $body =~ s/([\x80-\x{10FFFF}])/defined($map->{$1})?$map->{$1}:''/eg;
+    $body =~ s/([^[:ascii:]])/defined($map->{$1})?$map->{$1}:' '/eg;
+
+    # reduce spaces
+    $body =~ s/\x{20}+/ /g;
 
     # print STDERR "SUBJECT: $subject\n";
     # print STDERR "BODY: $body\n";
