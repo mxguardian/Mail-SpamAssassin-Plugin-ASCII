@@ -3,6 +3,8 @@ use strict;
 use warnings FATAL => 'all';
 use MXG::App;
 use MXG::Service::DB;
+use LWP::UserAgent;
+use Archive::Zip;
 use Pod::Usage;
 use XML::Parser;
 use Data::Dumper;
@@ -16,9 +18,8 @@ use utf8;
 
  Commands
      import_ucd           Import Unicode Character Database
-     import_confusables   Import confusables from unicode.org
      decompose            Generate ASCII equivalents by decomposing characters
-                          and removing combining marks
+     import_confusables   Import confusables from unicode.org
      list_homoglyphs      List homoglyphs
      list                 List all characters
      find_missing         Find missing characters
@@ -41,17 +42,18 @@ my $db = MXG::Service::DB->new(
     $kernel->config('database_password')
 );
 my $dispatch = {
-    'import_ucd'   => \&import_ucd,
-    'decompose'    => \&decompose,
-    'import_confusables'  => \&import_confusables,
-    'list_homoglyphs'   => \&list_homoglyphs,
-    'list'         => \&list_all,
-    'find_missing' => \&find_missing,
-    'list_ascii'   => \&list_ascii,
-    'generate_map' => \&generate_map,
-    'test_map'     => \&test_map,
-    'replace_tags' => \&replace_tags,
-    'explain'      => \&explain,
+    'create_schema'      => \&create_schema,
+    'import_ucd'         => \&import_ucd,
+    'decompose'          => \&decompose,
+    'import_confusables' => \&import_confusables,
+    'list_homoglyphs'    => \&list_homoglyphs,
+    'list'               => \&list_all,
+    'find_missing'       => \&find_missing,
+    'list_ascii'         => \&list_ascii,
+    'generate_map'       => \&generate_map,
+    'test_map'           => \&test_map,
+    'replace_tags'       => \&replace_tags,
+    'explain'            => \&explain,
 };
 
 my $cmd = shift @ARGV;
@@ -60,13 +62,61 @@ die "Unknown command '$cmd'" unless $dispatch->{$cmd};
 $dispatch->{$cmd}->();
 
 #
+# Create DB tables
+#
+sub create_schema {
+
+    my @sql = split /;\s*/, <<SQL;
+CREATE TABLE `chars` (
+                        `hcode` char(5) NOT NULL,
+                        `description` varchar(255) CHARACTER SET latin1 DEFAULT NULL,
+                        `ascii` char(6) CHARACTER SET latin1 DEFAULT NULL,
+                        `block` varchar(255) DEFAULT NULL,
+                        `script` char(4) DEFAULT NULL,
+                        `category` char(2) DEFAULT NULL,
+                        `bidi_class` char(3) DEFAULT NULL,
+                        `combining_class` int(4) DEFAULT NULL,
+                        `is_upper` tinyint(1) NOT NULL DEFAULT '0',
+                        `is_lower` tinyint(1) NOT NULL DEFAULT '0',
+                        `is_emoji` tinyint(1) NOT NULL DEFAULT '0',
+                        `is_whitespace` tinyint(1) NOT NULL DEFAULT '0',
+                        `is_printable` tinyint(1) NOT NULL DEFAULT '1',
+                        `is_zero_width` tinyint(1) NOT NULL DEFAULT '0',
+                        `decomposition` varchar(255) DEFAULT NULL,
+                        `uppercase` varchar(255) DEFAULT NULL,
+                        `lowercase` varchar(255) DEFAULT NULL,
+                        `dcode` int(11) unsigned DEFAULT NULL,
+                        `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                        PRIMARY KEY (`hcode`),
+                        KEY `sort` (`dcode`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TRIGGER `before_ins` BEFORE INSERT ON `chars` FOR EACH ROW SET NEW.dcode = CONV(NEW.hcode,16,10);
+
+CREATE TABLE `special` (
+                           `first_dcode` int(11) unsigned NOT NULL,
+                           `last_dcode` int(11) unsigned NOT NULL,
+                           `description` varchar(255) DEFAULT NULL,
+                           PRIMARY KEY (`first_dcode`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+SQL
+
+    for (@sql) {
+        chomp;
+        $db->do($_);
+    }
+
+}
+#
 # Import Unicode Character Database
 #
 # http://www.unicode.org/Public/UCD/latest/ucdxml/ucd.nounihan.grouped.zip
 #
 sub import_ucd {
-    my $ins_char = $db->prepare("INSERT IGNORE INTO `char`
-        (`code`,description,block,script,category,bidi_class,combining_class,
+    my $ins_char = $db->prepare("INSERT IGNORE INTO `chars`
+        (`hcode`,description,block,script,category,bidi_class,combining_class,
         is_upper,is_lower,is_emoji,is_whitespace,is_printable,
         decomposition,uppercase,lowercase)
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
@@ -74,7 +124,6 @@ sub import_ucd {
     my $ins_special = $db->prepare("INSERT IGNORE INTO `special`
         (first_dcode,last_dcode,description) VALUES (?,?,?)");
 
-    my $xml_file = "/home/kent/Downloads/ucd.nounihan.grouped.xml";
     my $group;
     my $xml = XML::Parser->new(Handlers => {
         Start => sub {
@@ -172,6 +221,22 @@ sub import_ucd {
         } # end start
     });
 
+    my $xml_file = "/tmp/ucd.nounihan.grouped.xml";
+    if ( ! -f $xml_file ) {
+        my $zip_file = "/tmp/ucd.nounihan.grouped.zip";
+        my $url = 'http://www.unicode.org/Public/UCD/latest/ucdxml/ucd.nounihan.grouped.zip';
+        print "Downloading $url\n";
+        my $ua = LWP::UserAgent->new();
+        my $response = $ua->get($url, ':content_file' => $zip_file);
+        die $response->status_line unless $response->is_success;
+
+        print "Extracting to $xml_file\n";
+        my $zip = Archive::Zip->new();
+        $zip->read($zip_file);
+        $zip->extractMember('ucd.nounihan.grouped.xml', $xml_file);
+    }
+
+    print "Importing $xml_file...This will take a Micro\$oft minute.\n";
     $xml->parsefile($xml_file);
 
 }
@@ -179,10 +244,10 @@ sub import_ucd {
 #
 # Import Confusables
 #
-# http://www.unicode.org/Public/security/latest/confusables.txt
+# https://www.unicode.org/Public/security/latest/confusables.txt
 #
 sub import_confusables {
-    our $upd_char = $db->prepare("UPDATE `char` SET ascii_equivalent = ? WHERE code = ?");
+    our $upd_char = $db->prepare("UPDATE `chars` SET ascii = ? WHERE hcode = ?");
 
     sub _save_confusables {
         my ($confusables) = @_;
@@ -200,7 +265,7 @@ sub import_confusables {
         }
 
         my $ascii = $ascii[0];
-        print "Saving $ascii: ".join(' ',@$confusables)."\n";
+        # print "Saving $ascii: ".join(' ',@$confusables)."\n";
 
         foreach my $confusable (@$confusables) {
             next if $confusable eq $ascii;
@@ -212,6 +277,13 @@ sub import_confusables {
     }
 
     my $filename = '/tmp/confusables.txt';
+    if ( ! -f $filename ) {
+        my $url = 'https://www.unicode.org/Public/security/latest/confusables.txt';
+        print "Downloading $url\n";
+        my $ua = LWP::UserAgent->new;
+        my $response = $ua->get($url, ':content_file' => $filename);
+        die $response->status_line unless $response->is_success;
+    }
     open(my $fh, '<:encoding(UTF-8)', $filename) or die "Could not open file '$filename' $!";
 
     my @confusables;
@@ -240,27 +312,29 @@ sub import_confusables {
 }
 
 sub decompose {
-    our $sel_chars = $db->prepare("SELECT * FROM `char` WHERE ascii_equivalent IS NULL AND decomposition IS NOT NULL");
-    our $upd_chars = $db->prepare("UPDATE `char` SET ascii_equivalent = ? WHERE code = ?");
+    our $sel_chars = $db->prepare("SELECT * FROM `chars` WHERE ascii IS NULL AND decomposition IS NOT NULL");
+    our $upd_chars = $db->prepare("UPDATE `chars` SET ascii = ? WHERE hcode = ?");
+
+    print "Decomposing characters...\n";
 
     $sel_chars->execute();
     while (my $char = $sel_chars->fetchrow_hashref()) {
         my $ascii = _decompose($char->{decomposition});
         $ascii =~ s/[^[:ascii:]]//g;
         next unless length($ascii) && $ascii ne '()';
-        print chr(hex($char->{code}))." $ascii\n";
-        # $upd_chars->execute($ascii, $char->{code});
+        # print chr(hex($char->{hcode}))." $ascii\n";
+        $upd_chars->execute($ascii, $char->{hcode});
     }
 
     sub _decompose {
         my ($chars) = @_;
         my $base = '';
         foreach my $char (split /\s+/, $chars) {
-            my $data = $db->fetch("SELECT decomposition,ascii_equivalent FROM `char` WHERE code = ?", $char);
+            my $data = $db->fetch("SELECT decomposition,ascii FROM `chars` WHERE hcode = ?", $char);
             if ( defined($data->{decomposition}) ) {
                 $base .= _decompose($data->{decomposition});
-            } elsif ( defined($data->{ascii_equivalent}) ) {
-                $base .= $data->{ascii_equivalent};
+            } elsif ( defined($data->{ascii}) ) {
+                $base .= $data->{ascii};
             } else {
                 $base .= chr(hex($char));
             }
@@ -274,16 +348,16 @@ sub decompose {
 # Generate replace_tags
 #
 sub replace_tags {
-    my $chars = $db->fetchAll("SELECT ascii_equivalent,code FROM `char` WHERE ascii_equivalent IS NOT NULL ORDER BY ascii_equivalent");
+    my $chars = $db->fetchAll("SELECT ascii,hcode FROM `chars` WHERE ascii IS NOT NULL ORDER BY ascii");
     my $re;
     my $last_ascii = '';
     foreach my $char (@$chars) {
-        if ( uc($char->{ascii_equivalent}) ne $last_ascii ) {
+        if ( uc($char->{ascii}) ne $last_ascii ) {
             print "replace_tag    ${last_ascii}2    (?:$re)\n" if defined($re) && $last_ascii =~ /^[A-Z]$/;
-            $last_ascii = uc($char->{ascii_equivalent});
-            $re = hex_to_utf8re($char->{code});
+            $last_ascii = uc($char->{ascii});
+            $re = hex_to_utf8re($char->{hcode});
         } else {
-            $re .= '|' . hex_to_utf8re($char->{code});
+            $re .= '|' . hex_to_utf8re($char->{hcode});
         }
     }
 
@@ -293,16 +367,16 @@ sub replace_tags {
 # List of homoglyphs
 #
 sub list_homoglyphs {
-    my $chars = $db->fetchAll("SELECT ascii_equivalent,code FROM `char` WHERE ascii_equivalent IS NOT NULL ORDER BY ascii_equivalent");
+    my $chars = $db->fetchAll("SELECT ascii,hcode FROM `chars` WHERE ascii IS NOT NULL ORDER BY ascii");
     my $str;
     my $last_ascii = '';
     foreach my $char (@$chars) {
-        if ( uc($char->{ascii_equivalent}) ne $last_ascii ) {
+        if ( uc($char->{ascii}) ne $last_ascii ) {
             printf "%-6s: %s\n",${last_ascii},$str if defined($str);
-            $last_ascii = uc($char->{ascii_equivalent});
-            $str = chr(hex($char->{code}));
+            $last_ascii = uc($char->{ascii});
+            $str = chr(hex($char->{hcode}));
         } else {
-            $str .= ' ' . chr(hex($char->{code}));
+            $str .= ' ' . chr(hex($char->{hcode}));
         }
     }
 
@@ -312,11 +386,11 @@ sub list_homoglyphs {
 # List all unicode characters
 #
 sub list_all {
-    my $chars = $db->fetchAll("SELECT * FROM `char` ORDER BY code");
+    my $chars = $db->fetchAll("SELECT * FROM `chars` ORDER BY dcode");
     foreach my $char (@$chars) {
-        my $code = $char->{code};
+        my $hcode = $char->{hcode};
         # as a unicode string
-        my $str = chr(hex($code));
+        my $str = chr(hex($hcode));
         # utf8 in bytes
         my $utf8bytes = encode("utf8", $str);
         # utf8bytes in hex
@@ -324,7 +398,7 @@ sub list_all {
         $utf8hex =~ s/(..)/\\x$1/g;
 
         my $desc = $char->{description}||'';
-        printf "U+%s %-15s %s %s\n", $code, $utf8hex, $str, $desc;
+        printf "U+%s %-15s %s %s\n", $hcode, $utf8hex, $str, $desc;
     }
 }
 
@@ -332,11 +406,11 @@ sub list_all {
 # List all unicode characters with ascii equivalents
 #
 sub list_ascii {
-    my $chars = $db->fetchAll("SELECT * FROM `char` WHERE ascii_equivalent IS NOT NULL ORDER BY dcode");
+    my $chars = $db->fetchAll("SELECT * FROM `chars` WHERE ascii IS NOT NULL ORDER BY dcode");
     foreach my $char (@$chars) {
-        my $hcode = $char->{code};
+        my $hcode = $char->{hcode};
         my $str = chr(hex($hcode));
-        printf "U+%s %s %s\n", $hcode, $str, $char->{ascii_equivalent};
+        printf "U+%s %s %s\n", $hcode, $str, $char->{ascii};
     }
 }
 
@@ -344,11 +418,11 @@ sub list_ascii {
 # List all unicode characters
 #
 sub generate_map {
-    my $chars = $db->fetchAll("SELECT * FROM `char` WHERE ascii_equivalent IS NOT NULL ORDER BY dcode");
+    my $chars = $db->fetchAll("SELECT * FROM `chars` WHERE ascii IS NOT NULL ORDER BY dcode");
     foreach my $char (@$chars) {
-        my $hcode = $char->{code};
-        my $ascii = $char->{ascii_equivalent};
-        $ascii = ' ' if ($ascii eq '');
+        my $hcode = $char->{hcode};
+        my $ascii = $char->{ascii};
+        $ascii = ' ' if ($ascii =~ /^\s*$/);  #
         $ascii = join('+', map { sprintf("%02X", ord($_)) } split //, $ascii);
         printf "%s %s\n", $hcode, $ascii;
     }
@@ -357,7 +431,7 @@ sub generate_map {
 
 sub test_map {
 
-    my $test_string = <<"EOF";
+    my $body = <<"EOF";
     Ýou hãve a nèw vòice-mãil
     PαyPal
     You havé Reꞓeìved an Enꞓryptéd Company Maíl
@@ -366,6 +440,7 @@ sub test_map {
     A\x{20DD}
     あ
     The pass͏word­ for your ­em͏ail ­expi͏res
+    💚🍁32 Years older Div0rced🍁💚Un-happy🍁💚BJ MOM💘Ready for fu*c*k💋💘
 EOF
 
     my %map;
@@ -379,13 +454,21 @@ EOF
     }
     close($fh);
 
-    $test_string =~ s/([\x80-\x{10FFFF}])/defined($map{$1})?$map{$1}:''/eg;
+
+    # remove zero-width characters and combining marks
+    $body =~ s/[\xAD\x{034F}\x{200B}-\x{200F}\x{202A}\x{202B}\x{202C}\x{2060}\x{FEFF}]|\p{Combining_Mark}//g;
+
+    # replace non-ascii characters with ascii equivalents
+    $body =~ s/([^[:ascii:]])/defined($map{$1})?$map{$1}:' '/eg;
+
+    # reduce spaces
+    $body =~ s/\x{20}+/ /g;
 
     # use Unicode::Normalize;
     # $test_string = NFKD($test_string);
     # $test_string =~ s/\p{Combining_Mark}//g;
 
-    print $test_string;
+    print $body;
 
 }
 
@@ -395,7 +478,7 @@ EOF
 sub find_missing {
 
     my $special = $db->fetchAll("SELECT * FROM special ORDER BY first_dcode");
-    my $chars = $db->fetchAll("SELECT dcode FROM `char` ORDER BY dcode");
+    my $chars = $db->fetchAll("SELECT dcode FROM `chars` ORDER BY dcode");
 
     my $last_dcode = -1;
     my $c = shift(@$chars);
@@ -426,13 +509,13 @@ sub find_missing {
 }
 
 sub explain {
-    my $sel_char = $db->prepare("SELECT * FROM `char` WHERE dcode = ?");
+    my $sel_char = $db->prepare("SELECT * FROM `chars` WHERE dcode = ?");
     my $str = decode_utf8(join(' ',@ARGV));
     foreach my $char (split //,$str) {
         my $dcode = ord($char);
         $sel_char->execute($dcode);
         my $row = $sel_char->fetchrow_hashref;
-        my $hcode = $row->{code};
+        my $hcode = $row->{hcode};
         # print ASCII in green, others in yellow
         my $color = $dcode < 128 ? '0' : $dcode < 256 ? '33': '31';
         printf "\e[%sm%-50s U+%04X %s\e[0m\n", $color, decode_utf8($row->{description}), $dcode, hex_to_utf8re($hcode);
