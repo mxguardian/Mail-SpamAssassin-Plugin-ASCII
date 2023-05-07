@@ -423,15 +423,33 @@ sub list_ascii {
 # List all unicode characters
 #
 sub generate_map {
+
+    my $filename = 'lib/Mail/SpamAssassin/Plugin/ASCII.pm';
+    open my $fh, '+<', $filename or die "Cannot open $filename: $!";
+
+    # Find the start of the __DATA__ section
+    seek $fh, 0, 0;
+    while (<$fh>) {
+        last if /^__DATA__\r?\n/;
+    }
+    if (eof $fh) {
+        # No __DATA__ section found, append one
+        print $fh "__DATA__\n";
+    } else {
+        # Truncate the file at the start of the __DATA__ section
+        truncate $fh, tell($fh);
+    }
+
     my $chars = $db->fetchAll("SELECT * FROM `chars` WHERE ascii IS NOT NULL ORDER BY dcode");
     foreach my $char (@$chars) {
         my $hcode = $char->{hcode};
         my $ascii = $char->{ascii};
         $ascii = ' ' if ($ascii =~ /^\s*$/);  #
         $ascii = join('+', map { sprintf("%02X", ord($_)) } split //, $ascii);
-        printf "%s %s\n", $hcode, $ascii;
+        printf $fh "%s %s\n", $hcode, $ascii;
     }
-    # print "\n";
+    close $fh;
+    print "Updated $filename with new char map\n";
 }
 
 sub test_map {
