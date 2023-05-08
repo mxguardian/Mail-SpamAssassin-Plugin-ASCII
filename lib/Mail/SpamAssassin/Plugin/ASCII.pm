@@ -80,11 +80,11 @@ use Encode;
 use Data::Dumper;
 use utf8;
 
-our $VERSION = 0.02;
+our $VERSION = 0.03;
 
 use Mail::SpamAssassin::Plugin;
 use Mail::SpamAssassin::Logger qw(would_log);
-use Mail::SpamAssassin::Util qw(compile_regexp &is_valid_utf_8);
+use Mail::SpamAssassin::Util qw(compile_regexp &is_valid_utf_8 &untaint_var);
 
 our @ISA = qw(Mail::SpamAssassin::Plugin);
 
@@ -153,6 +153,11 @@ sub set_config {
 
                 $conf->{parser}->{conf}->{ascii_rules}->{$name} = $re;
 
+                # just define the test so that scores and lint works
+                $self->{parser}->add_test($name, undef,
+                    $Mail::SpamAssassin::Conf::TYPE_EMPTY_TESTS);
+
+
             }
         }
     ));
@@ -219,7 +224,7 @@ sub parsed_metadata {
 
 EOF
 
-    eval $eval;
+    eval untaint_var($eval);
     if ($@) {
         die("Error compiling ascii rules: $@");
     }
