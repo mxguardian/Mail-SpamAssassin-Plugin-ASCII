@@ -80,7 +80,7 @@ use Encode;
 use Data::Dumper;
 use utf8;
 
-our $VERSION = 0.04;
+our $VERSION = 0.05;
 
 use Mail::SpamAssassin::Plugin;
 use Mail::SpamAssassin::Logger qw(would_log);
@@ -189,7 +189,7 @@ EOF
         my $score = $conf->{scores}->{$name} || 1;
 
         if ( $would_log ) {
-            $eval .= qq(    dbg("running rule $name $test_qr");\n);
+            $eval .= qq(    dbg("running rule $name");\n);
         }
 
         $eval .= <<"EOF";
@@ -224,7 +224,7 @@ EOF
 
     eval untaint_var($eval);
     if ($@) {
-        die("Error compiling ascii rules: $@");
+        die("ASCII: Error compiling rules: $@");
     }
 
 }
