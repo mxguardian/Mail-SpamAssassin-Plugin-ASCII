@@ -80,15 +80,13 @@ use Encode;
 use Data::Dumper;
 use utf8;
 
-our $VERSION = 0.03;
+our $VERSION = 0.04;
 
 use Mail::SpamAssassin::Plugin;
 use Mail::SpamAssassin::Logger qw(would_log);
 use Mail::SpamAssassin::Util qw(compile_regexp &is_valid_utf_8 &untaint_var);
 
 our @ISA = qw(Mail::SpamAssassin::Plugin);
-
-my $would_log_rules_all;
 
 # constructor
 sub new {
@@ -103,13 +101,11 @@ sub new {
     $self->set_config($mailsaobject->{conf});
     $self->load_map();
 
-    $would_log_rules_all = would_log('dbg', 'rules-all') == 2;
-
     return $self;
 }
 
-sub dbg { Mail::SpamAssassin::Logger::dbg ("ScriptInfo: @_"); }
-sub info { Mail::SpamAssassin::Logger::info ("ScriptInfo: @_"); }
+sub dbg { Mail::SpamAssassin::Logger::dbg ("ASCII: @_"); }
+sub info { Mail::SpamAssassin::Logger::info ("ASCII: @_"); }
 
 sub load_map {
     my ($self) = @_;
@@ -170,6 +166,8 @@ sub finish_parsing_end    {
 
     my $conf = $opts->{conf};
     return unless exists $conf->{ascii_rules};
+    my $would_log = would_log('dbg');
+
 
     # build eval string to compile rules
     my $eval = <<'EOF';
@@ -190,7 +188,7 @@ EOF
         my $tflags = $conf->{tflags}->{$name} || '';
         my $score = $conf->{scores}->{$name} || 1;
 
-        if ( $would_log_rules_all ) {
+        if ( $would_log ) {
             $eval .= qq(    dbg("running rule $name $test_qr");\n);
         }
 
@@ -199,7 +197,7 @@ EOF
     foreach my \$line (\@\$ascii_body) {
         if ( \$line =~ /\$test_qr/p ) {
 EOF
-        if ( $would_log_rules_all ) {
+        if ( $would_log ) {
             $eval .= <<EOF;
             dbg(qq(ran rule $name ======> got hit ").(defined \${^MATCH} ? \${^MATCH} : '<negative match>').qq("));
 EOF
