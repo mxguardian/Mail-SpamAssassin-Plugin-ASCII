@@ -264,12 +264,13 @@ sub import_confusables {
             # print "No ASCII equivalent for ".join(' ',@$confusables)."\n";
             return;
         }
+        my $ascii = $ascii[0];
         if ( scalar(@ascii) > 1 ) {
             print STDERR "Warning: Multiple ASCII equivalents for ".join(' ',@$confusables)."\n";
-            return;
+            # insert placeholder so we can find these later
+            $ascii = '_?_';
         }
 
-        my $ascii = $ascii[0];
         # print "Saving $ascii: ".join(' ',@$confusables)."\n";
 
         foreach my $confusable (@$confusables) {
