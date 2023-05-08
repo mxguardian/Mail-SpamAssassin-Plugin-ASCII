@@ -80,13 +80,15 @@ use Encode;
 use Data::Dumper;
 use utf8;
 
-our $VERSION = 0.08;
+our $VERSION = 0.09;
 
 use Mail::SpamAssassin::Plugin;
 use Mail::SpamAssassin::Logger qw(would_log);
 use Mail::SpamAssassin::Util qw(compile_regexp &is_valid_utf_8 &untaint_var);
 
 our @ISA = qw(Mail::SpamAssassin::Plugin);
+
+my %char_map;
 
 # constructor
 sub new {
@@ -110,19 +112,18 @@ sub info { Mail::SpamAssassin::Logger::info ("ASCII: @_"); }
 sub load_map {
     my ($self) = @_;
 
-    return if defined($self->{char_map});
+    return if %char_map;
 
     # build character map from __DATA__ section
-    my %char_map;
     while (<DATA>) {
         chomp;
         my ($key,$value) = split /\s+/;
         my $ascii = join('', map { chr(hex($_)) } split /\+/, $value);
         $char_map{chr(hex($key))} = $ascii;
     }
-    $self->{char_map} = \%char_map;
-
+    close DATA;
 }
+
 
 sub set_config {
     my ($self, $conf) = @_;
@@ -162,15 +163,20 @@ sub set_config {
     $conf->{parser}->register_commands(\@cmds);
 }
 
-sub finish_parsing_end    {
+sub finish_parsing_end {
     my ($self, $opts) = @_;
-
     my $conf = $opts->{conf};
+
+    # prevent warnings about redefining subs
+    undef &_run_ascii_rules;
+
+    # only compile rules if we have any
     return unless exists $conf->{ascii_rules};
+
+    # check if we should include calls to dbg()
     my $would_log = would_log('dbg');
 
-
-    # build eval string to compile rules
+    # build eval string
     my $eval = <<'EOF';
 package Mail::SpamAssassin::Plugin::ASCII;
 
@@ -214,21 +220,23 @@ EOF
     $eval .= <<'EOF';
 }
 
-sub parsed_metadata {
-    my ($self, $opts) = @_;
-
-    $self->_run_ascii_rules($opts);
-
-}
-
 EOF
 
+    # compile the new rules
     eval untaint_var($eval);
     if ($@) {
         die("ASCII: Error compiling rules: $@");
     }
 
 }
+
+sub parsed_metadata {
+    my ($self, $opts) = @_;
+
+    $self->_run_ascii_rules($opts) if $self->can('_run_ascii_rules');
+
+}
+
 #
 # Get the body of the message as an array of lines
 #
@@ -270,8 +278,7 @@ sub _get_ascii_body {
     $body =~ s/[\xAD\x{034F}\x{200B}-\x{200F}\x{202A}\x{202B}\x{202C}\x{2060}\x{FEFF}]|\p{Combining_Mark}//g;
 
     # replace non-ascii characters with ascii equivalents
-    my $map = $self->{char_map};
-    $body =~ s/([^[:ascii:]])/defined($map->{$1})?$map->{$1}:' '/eg;
+    $body =~ s/([^[:ascii:]])/defined($char_map{$1})?$char_map{$1}:' '/eg;
 
     # reduce spaces
     $body =~ s/\x{20}+/ /g;
