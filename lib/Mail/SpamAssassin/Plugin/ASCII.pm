@@ -80,7 +80,7 @@ use Encode;
 use Data::Dumper;
 use utf8;
 
-our $VERSION = 0.07;
+our $VERSION = 0.08;
 
 use Mail::SpamAssassin::Plugin;
 use Mail::SpamAssassin::Logger qw(would_log);
@@ -121,7 +121,6 @@ sub load_map {
         $char_map{chr(hex($key))} = $ascii;
     }
     $self->{char_map} = \%char_map;
-    close DATA;
 
 }
 
