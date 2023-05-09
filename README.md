@@ -52,3 +52,12 @@ the letter 'O' can be replaced with the number '0' and the letter 'l' can be rep
 with the number '1' as in "PayPa1 0rder". This plugin does not attempt to catch these
 types of obfuscation. Therefore, you still need to use other techniques such as using
 a character class or `replace_tags` to catch these types of obfuscation.
+
+# TFLAGS
+
+This plugin supports the following `tflags`:
+
+- nosubject
+
+    By default the message Subject header is considered part of the body and becomes the first line
+    when running the rules. If you don't want to match Subject along with body text, use "tflags RULENAME nosubject"

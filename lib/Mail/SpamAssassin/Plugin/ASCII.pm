@@ -78,9 +78,22 @@ with the number '1' as in "PayPa1 0rder". This plugin does not attempt to catch 
 types of obfuscation. Therefore, you still need to use other techniques such as using
 a character class or C<replace_tags> to catch these types of obfuscation.
 
+=head1 TFLAGS
+
+This plugin supports the following C<tflags>:
+
+=over 4
+
+=item nosubject
+
+By default the message Subject header is considered part of the body and becomes the first line
+when running the rules. If you don't want to match Subject along with body text, use "tflags RULENAME nosubject"
+
+=back
+
 =cut
 
-our $VERSION = 0.10;
+our $VERSION = 0.11;
 
 use Mail::SpamAssassin::Plugin;
 use Mail::SpamAssassin::Logger qw(would_log);
@@ -185,31 +198,35 @@ sub _run_ascii_rules {
     my $pms = $opts->{permsgstatus};
     my $test_qr;
 
-    # check all script rules
+    # get ascii body
     my $ascii_body = $self->_get_ascii_body($pms);
 
+    # get subject
+    my $subject = $pms->{msg}->get_header('subject') || '';
+    $subject = _convert_to_ascii(decode('UTF-8', $subject));
+
+    # check all script rules
 EOF
 
     foreach my $name (keys %{$conf->{ascii_rules}}) {
         my $test_qr = $conf->{ascii_rules}->{$name};
         my $tflags = $conf->{tflags}->{$name} || '';
         my $score = $conf->{scores}->{$name} || 1;
+        my $lines = $tflags =~ /\bnosubject\b/ ?  '@$ascii_body' : '$subject, @$ascii_body';
 
+        my $dbg_running_rule = '';
+        my $dbg_ran_rule = '';
         if ( $would_log ) {
-            $eval .= qq(    dbg("running rule $name");\n);
+            $dbg_running_rule = qq(dbg("running rule $name"););
+            $dbg_ran_rule = qq(dbg(qq(ran rule $name ======> got hit ").(defined \${^MATCH} ? \${^MATCH} : '<negative match>').qq(")););
         }
 
         $eval .= <<"EOF";
+    $dbg_running_rule
     \$test_qr = \$pms->{conf}->{ascii_rules}->{$name};
-    foreach my \$line (\@\$ascii_body) {
+    foreach my \$line ($lines) {
         if ( \$line =~ /\$test_qr/p ) {
-EOF
-        if ( $would_log ) {
-            $eval .= <<EOF;
-            dbg(qq(ran rule $name ======> got hit ").(defined \${^MATCH} ? \${^MATCH} : '<negative match>').qq("));
-EOF
-        }
-        $eval .= <<"EOF";
+            $dbg_ran_rule
             \$pms->{pattern_hits}->{$name} = \${^MATCH} if defined \${^MATCH};
             \$pms->got_hit('$name','ASCII: ','ruletype' => 'body', 'score' => $score);
             last;
@@ -264,30 +281,31 @@ sub _get_ascii_body {
     # if we didn't find a text part, return empty list
     return [] unless defined $body_part;
 
-    # get subject
-    my $subject = $pms->{msg}->get_header('subject') || '';
-    $subject = decode('UTF-8', $subject);
-
     my $body = $body_part->rendered();
     if ( is_valid_utf_8($body)) {
         $body = decode('UTF-8', $body);
     }
-    $body = $subject . "\n" . $body;
+    # $body = $subject . "\n" . $body;
 
-    # remove zero-width characters and combining marks
-    $body =~ s/[\xAD\x{034F}\x{200B}-\x{200F}\x{202A}\x{202B}\x{202C}\x{2060}\x{FEFF}]|\p{Combining_Mark}//g;
-
-    # replace non-ascii characters with ascii equivalents
-    $body =~ s/([^[:ascii:]])/defined($char_map{$1})?$char_map{$1}:' '/eg;
-
-    # reduce spaces
-    $body =~ s/\x{20}+/ /g;
-
+    $body = _convert_to_ascii($body);
     # print STDERR "SUBJECT: $subject\n";
     # print STDERR "BODY: $body\n";
     $pms->{ascii_body} = $body;
     my @lines = split(/\n/, $body);
     return \@lines;
+}
+
+sub _convert_to_ascii {
+    my $str = shift;
+
+    # remove zero-width characters and combining marks
+    $str =~ s/[\xAD\x{034F}\x{200B}-\x{200F}\x{202A}\x{202B}\x{202C}\x{2060}\x{FEFF}]|\p{Combining_Mark}//g;
+    # replace non-ascii characters with ascii equivalents
+    $str =~ s/([^[:ascii:]])/defined($char_map{$1})?$char_map{$1}:' '/eg;
+    # collapse spaces
+    $str =~ s/\x{20}+/ /g;
+
+    return $str;
 }
 
 1;
