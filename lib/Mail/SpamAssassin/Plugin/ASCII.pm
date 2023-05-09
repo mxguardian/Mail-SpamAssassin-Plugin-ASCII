@@ -89,11 +89,20 @@ This plugin supports the following C<tflags>:
 By default the message Subject header is considered part of the body and becomes the first line
 when running the rules. If you don't want to match Subject along with body text, use "tflags RULENAME nosubject"
 
+=item multiple
+
+The test will be evaluated multiple times, for use with meta rules.
+
+=item maxhits=N
+
+If multiple is specified, limit the number of hits found to N. If the rule is used in a meta rule that counts
+the hits (e.g. __RULENAME > 5), this is a way to avoid wasted extra work (use "tflags __RULENAME multiple maxhits=6").
+
 =back
 
 =cut
 
-our $VERSION = 0.11;
+our $VERSION = 0.12;
 
 use Mail::SpamAssassin::Plugin;
 use Mail::SpamAssassin::Logger qw(would_log);
@@ -196,7 +205,7 @@ package Mail::SpamAssassin::Plugin::ASCII;
 sub _run_ascii_rules {
     my ($self, $opts) = @_;
     my $pms = $opts->{permsgstatus};
-    my $test_qr;
+    my ($test_qr,$hits);
 
     # get ascii body
     my $ascii_body = $self->_get_ascii_body($pms);
@@ -207,8 +216,9 @@ sub _run_ascii_rules {
 
     # check all script rules
 EOF
-
+    my $loopid = 0;
     foreach my $name (keys %{$conf->{ascii_rules}}) {
+        $loopid++;
         my $test_qr = $conf->{ascii_rules}->{$name};
         my $tflags = $conf->{tflags}->{$name} || '';
         my $score = $conf->{scores}->{$name} || 1;
@@ -218,27 +228,47 @@ EOF
         my $dbg_ran_rule = '';
         if ( $would_log ) {
             $dbg_running_rule = qq(dbg("running rule $name"););
-            $dbg_ran_rule = qq(dbg(qq(ran rule $name ======> got hit ").(defined \${^MATCH} ? \${^MATCH} : '<negative match>').qq(")););
+            $dbg_ran_rule = qq(dbg(qq(ran rule $name ======> got hit "\$match")););
+        }
+
+        my $ifwhile = 'if';
+        my $last = 'last;';
+        my $modifiers = 'p';
+        my $init_hits = '';
+
+        if ( $tflags =~ /\bmultiple\b/ ) {
+            $ifwhile = 'while';
+            $modifiers .= 'g';
+            if ($tflags =~ /\bmaxhits=(\d+)\b/) {
+                $init_hits = "\$hits = 0;";
+                $last = "last rule_$loopid if ++\$hits >= $1;";
+            } else {
+                $last = '';
+            }
         }
 
         $eval .= <<"EOF";
     $dbg_running_rule
     \$test_qr = \$pms->{conf}->{ascii_rules}->{$name};
-    foreach my \$line ($lines) {
-        if ( \$line =~ /\$test_qr/p ) {
+    $init_hits
+    rule_$loopid: foreach my \$line ($lines) {
+        $ifwhile ( \$line =~ /\$test_qr/$modifiers ) {
+            my \$match = defined \${^MATCH} ? \${^MATCH} : '<negative match>';
             $dbg_ran_rule
-            \$pms->{pattern_hits}->{$name} = \${^MATCH} if defined \${^MATCH};
+            \$pms->{pattern_hits}->{$name} = \$match;
             \$pms->got_hit('$name','ASCII: ','ruletype' => 'body', 'score' => $score);
-            last;
+            $last
         }
     }
 EOF
+
     }
     $eval .= <<'EOF';
 }
 
 EOF
 
+    print "$eval\n";
     # compile the new rules
     eval untaint_var($eval);
     if ($@) {

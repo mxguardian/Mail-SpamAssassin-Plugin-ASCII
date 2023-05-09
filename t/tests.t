@@ -18,13 +18,26 @@ my $spamassassin = Mail::SpamAssassin->new(
         debug              => '0',
         pre_config_text        => <<'EOF'
             loadplugin Mail::SpamAssassin::Plugin::ASCII
+
             ascii  ASCII_OFFICE_365  /office 365/i
+
             ascii  ASCII_HELP_DESK   /help desk/i
-            ascii  ASCII_VOICEMAIL   /new voicemail received/i
+
+            ascii  __ASCII_VOICEMAIL   /voice-?mail/i
+            tflags __ASCII_VOICEMAIL   multiple
+            meta   ASCII_VOICEMAIL     __ASCII_VOICEMAIL == 3
+
             ascii  ASCII_BIGBAG      /www\.bigbag\.co\.za/i
+
             ascii  ASCII_SUBJ        /You have a new voice-?mail/i
+
             ascii  ASCII_NOSUBJ      /Password Notification/i
             tflags ASCII_NOSUBJ      nosubject
+
+            ascii  __ASCII_LAWN      /lawn/i
+            tflags __ASCII_LAWN      multiple maxhits=5
+            meta   ASCII_LAWN        __ASCII_LAWN == 5
+
 EOF
             ,
     }
@@ -49,7 +62,6 @@ my @files = (
             'ASCII_SUBJ' => 1,
         },
         'pattern_hits' => {
-            'ASCII_VOICEMAIL' => 'New voicemail received',
             'ASCII_SUBJ' => 'You have a new voice-mail',
         }
     },
@@ -57,6 +69,7 @@ my @files = (
         'name'       => 'msg3.eml',
         'hits'       => {
             'ASCII_BIGBAG' => 1,
+            'ASCII_LAWN' => 1,
         },
         'pattern_hits' => {
             'ASCII_BIGBAG' => 'www.bigbag.co.za',

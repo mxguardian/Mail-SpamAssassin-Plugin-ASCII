@@ -61,3 +61,12 @@ This plugin supports the following `tflags`:
 
     By default the message Subject header is considered part of the body and becomes the first line
     when running the rules. If you don't want to match Subject along with body text, use "tflags RULENAME nosubject"
+
+- multiple
+
+    The test will be evaluated multiple times, for use with meta rules.
+
+- maxhits=N
+
+    If multiple is specified, limit the number of hits found to N. If the rule is used in a meta rule that counts
+    the hits (e.g. \_\_RULENAME > 5), this is a way to avoid wasted extra work (use "tflags \_\_RULENAME multiple maxhits=6").
