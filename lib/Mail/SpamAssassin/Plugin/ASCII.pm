@@ -13,6 +13,14 @@
 
 # Author:  Kent Oyer <kent@mxguardian.net>
 
+package Mail::SpamAssassin::Plugin::ASCII;
+use strict;
+use warnings FATAL => 'all';
+use v5.12;
+use Encode;
+use Data::Dumper;
+use utf8;
+
 =encoding utf8
 
 =head1 NAME
@@ -72,15 +80,7 @@ a character class or C<replace_tags> to catch these types of obfuscation.
 
 =cut
 
-package Mail::SpamAssassin::Plugin::ASCII;
-use strict;
-use warnings FATAL => 'all';
-use v5.12;
-use Encode;
-use Data::Dumper;
-use utf8;
-
-our $VERSION = 0.09;
+our $VERSION = 0.10;
 
 use Mail::SpamAssassin::Plugin;
 use Mail::SpamAssassin::Logger qw(would_log);
@@ -285,6 +285,7 @@ sub _get_ascii_body {
 
     # print STDERR "SUBJECT: $subject\n";
     # print STDERR "BODY: $body\n";
+    $pms->{ascii_body} = $body;
     my @lines = split(/\n/, $body);
     return \@lines;
 }
