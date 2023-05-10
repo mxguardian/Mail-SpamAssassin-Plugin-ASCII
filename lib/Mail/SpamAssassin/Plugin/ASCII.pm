@@ -102,7 +102,7 @@ the hits (e.g. __RULENAME > 5), this is a way to avoid wasted extra work (use "t
 
 =cut
 
-our $VERSION = 0.13;
+our $VERSION = 0.14;
 
 use Mail::SpamAssassin::Plugin;
 use Mail::SpamAssassin::Logger qw(would_log);
@@ -295,7 +295,12 @@ sub parsed_metadata {
 sub _get_ascii_body {
     my ($self, $pms) = @_;
 
-    my @lines = map {
+    if (exists $pms->{ascii_body}) {
+        return $pms->{ascii_body};
+    }
+
+    my @lines;
+    foreach (@{ $pms->get_decoded_stripped_body_text_array() }) {
         my $line = is_valid_utf_8($_) ? decode('UTF-8', $_) : $_;
         # remove zero-width characters and combining marks
         $line =~ s/[\xAD\x{034F}\x{200B}-\x{200F}\x{202A}\x{202B}\x{202C}\x{2060}\x{FEFF}]|\p{Combining_Mark}//g;
@@ -303,10 +308,9 @@ sub _get_ascii_body {
         $line =~ s/([^[:ascii:]])/defined($char_map{$1})?$char_map{$1}:' '/eg;
         # collapse spaces
         $line =~ s/\x{20}+/ /g;
-        $line;
-    } @{ $pms->get_decoded_stripped_body_text_array() };
-    $pms->{ascii_body} = join("\n", @lines);
-    return \@lines;
+        push @lines, $line;
+    }
+    $pms->{ascii_body} = \@lines;
 }
 
 1;
