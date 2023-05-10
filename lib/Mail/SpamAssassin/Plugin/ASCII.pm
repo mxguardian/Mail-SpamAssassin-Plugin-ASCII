@@ -102,7 +102,7 @@ the hits (e.g. __RULENAME > 5), this is a way to avoid wasted extra work (use "t
 
 =cut
 
-our $VERSION = 0.12;
+our $VERSION = 0.13;
 
 use Mail::SpamAssassin::Plugin;
 use Mail::SpamAssassin::Logger qw(would_log);
@@ -205,14 +205,10 @@ package Mail::SpamAssassin::Plugin::ASCII;
 sub _run_ascii_rules {
     my ($self, $opts) = @_;
     my $pms = $opts->{permsgstatus};
-    my ($test_qr,$hits);
+    my ($test_qr,$hits,$nosubj);
 
     # get ascii body
     my $ascii_body = $self->_get_ascii_body($pms);
-
-    # get subject
-    my $subject = $pms->{msg}->get_header('subject') || '';
-    $subject = _convert_to_ascii(decode('UTF-8', $subject));
 
     # check all script rules
 EOF
@@ -222,7 +218,6 @@ EOF
         my $test_qr = $conf->{ascii_rules}->{$name};
         my $tflags = $conf->{tflags}->{$name} || '';
         my $score = $conf->{scores}->{$name} || 1;
-        my $lines = $tflags =~ /\bnosubject\b/ ?  '@$ascii_body' : '$subject, @$ascii_body';
 
         my $dbg_running_rule = '';
         my $dbg_ran_rule = '';
@@ -247,11 +242,21 @@ EOF
             }
         }
 
+        my $init_subject = '';
+        my $skip_subject = '';
+
+        if ( $tflags =~ /\bnosubject\b/ ) {
+            $init_subject = '$nosubj = 1;';
+            $skip_subject = 'if ($nosubj) { $nosubj = 0; next; }';
+        }
+
         $eval .= <<"EOF";
     $dbg_running_rule
     \$test_qr = \$pms->{conf}->{ascii_rules}->{$name};
     $init_hits
-    rule_$loopid: foreach my \$line ($lines) {
+    $init_subject
+    rule_$loopid: foreach my \$line (\@\$ascii_body) {
+        $skip_subject
         $ifwhile ( \$line =~ /\$test_qr/$modifiers ) {
             my \$match = defined \${^MATCH} ? \${^MATCH} : '<negative match>';
             $dbg_ran_rule
@@ -268,7 +273,7 @@ EOF
 
 EOF
 
-    print "$eval\n";
+    # print "$eval\n";
     # compile the new rules
     eval untaint_var($eval);
     if ($@) {
@@ -290,52 +295,18 @@ sub parsed_metadata {
 sub _get_ascii_body {
     my ($self, $pms) = @_;
 
-    # locate the main body part (prefer html over text)
-    my $body_part;
-    foreach my $p ($pms->{msg}->find_parts(qr(text/))) {
-        my ($ctype, $boundary, $charset, $name) = Mail::SpamAssassin::Util::parse_content_type($p->get_header('content-type'));
-
-        # skip parts with a filename
-        next if defined $name;
-
-        # take the first text/html part we find
-        if ( lc($ctype) eq 'text/html' ) {
-            $body_part = $p;
-            last;
-        }
-
-        # otherwise take the first text/plain part we find
-        $body_part = $p unless defined $body_part;
-    }
-
-    # if we didn't find a text part, return empty list
-    return [] unless defined $body_part;
-
-    my $body = $body_part->rendered();
-    if ( is_valid_utf_8($body)) {
-        $body = decode('UTF-8', $body);
-    }
-    # $body = $subject . "\n" . $body;
-
-    $body = _convert_to_ascii($body);
-    # print STDERR "SUBJECT: $subject\n";
-    # print STDERR "BODY: $body\n";
-    $pms->{ascii_body} = $body;
-    my @lines = split(/\n/, $body);
+    my @lines = map {
+        my $line = is_valid_utf_8($_) ? decode('UTF-8', $_) : $_;
+        # remove zero-width characters and combining marks
+        $line =~ s/[\xAD\x{034F}\x{200B}-\x{200F}\x{202A}\x{202B}\x{202C}\x{2060}\x{FEFF}]|\p{Combining_Mark}//g;
+        # replace non-ascii characters with ascii equivalents
+        $line =~ s/([^[:ascii:]])/defined($char_map{$1})?$char_map{$1}:' '/eg;
+        # collapse spaces
+        $line =~ s/\x{20}+/ /g;
+        $line;
+    } @{ $pms->get_decoded_stripped_body_text_array() };
+    $pms->{ascii_body} = join("\n", @lines);
     return \@lines;
-}
-
-sub _convert_to_ascii {
-    my $str = shift;
-
-    # remove zero-width characters and combining marks
-    $str =~ s/[\xAD\x{034F}\x{200B}-\x{200F}\x{202A}\x{202B}\x{202C}\x{2060}\x{FEFF}]|\p{Combining_Mark}//g;
-    # replace non-ascii characters with ascii equivalents
-    $str =~ s/([^[:ascii:]])/defined($char_map{$1})?$char_map{$1}:' '/eg;
-    # collapse spaces
-    $str =~ s/\x{20}+/ /g;
-
-    return $str;
 }
 
 1;
