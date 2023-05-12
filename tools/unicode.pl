@@ -319,7 +319,7 @@ sub import_confusables {
 
 sub decompose {
     our $sel_chars = $db->prepare("SELECT * FROM `chars` WHERE ascii IS NULL AND decomposition IS NOT NULL");
-    our $upd_chars = $db->prepare("UPDATE `chars` SET ascii = ? WHERE hcode = ?");
+    our $upd_chars = $db->prepare("UPDATE `chars` SET ascii = ? WHERE hcode = ? AND ascii IS NULL");
 
     print "Decomposing characters...\n";
 
