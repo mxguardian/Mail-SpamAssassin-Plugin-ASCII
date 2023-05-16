@@ -18,13 +18,29 @@ use utf8;
      decompose            Generate ASCII equivalents by decomposing characters
      import_confusables   Import confusables from unicode.org
      list_homoglyphs      List homoglyphs
-     list                 List all characters
+     list_zw              List all zero-width characters
      find_missing         Find missing characters
      list_ascii           List ASCII characters
      generate_map         Generate character map data for use in ASCII.pm
      test_map             Test character map
      replace_tags         Generate replace_tag code suitable for use in SpamAssassin
      explain              Decode a string of unicode characters
+
+=head1 AUTHORS
+
+Kent Oyer <kent@mxguardian.net>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2023 MXGuardian LLC
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the Apache License 2.0. See the LICENSE file included
+with this distribution for more information.
+
+This plugin is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
 
 =cut
 
@@ -44,7 +60,7 @@ my $dispatch = {
     'decompose'          => \&decompose,
     'import_confusables' => \&import_confusables,
     'list_homoglyphs'    => \&list_homoglyphs,
-    'list'               => \&list_all,
+    'list_zw'            => \&list_zw,
     'find_missing'       => \&find_missing,
     'list_ascii'         => \&list_ascii,
     'generate_map'       => \&generate_map,
@@ -389,10 +405,10 @@ sub list_homoglyphs {
 }
 
 #
-# List all unicode characters
+# List all zero-width characters
 #
-sub list_all {
-    my $chars = $db->fetchAll("SELECT * FROM `chars` ORDER BY dcode");
+sub list_zw {
+    my $chars = $db->fetchAll("SELECT * FROM `chars` WHERE is_zero_width = 1 ORDER BY dcode");
     foreach my $char (@$chars) {
         my $hcode = $char->{hcode};
         # as a unicode string
@@ -404,7 +420,7 @@ sub list_all {
         $utf8hex =~ s/(..)/\\x$1/g;
 
         my $desc = $char->{description}||'';
-        printf "U+%s %-15s %s %s\n", $hcode, $utf8hex, $str, $desc;
+        printf "U+%s %-15s %s\n", $hcode, $utf8hex, $desc;
     }
 }
 

@@ -10,9 +10,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # </@LICENSE>
-
-# Author:  Kent Oyer <kent@mxguardian.net>
-
 package Mail::SpamAssassin::Plugin::ASCII;
 use strict;
 use warnings FATAL => 'all';
@@ -99,6 +96,21 @@ If multiple is specified, limit the number of hits found to N. If the rule is us
 the hits (e.g. __RULENAME > 5), this is a way to avoid wasted extra work (use "tflags __RULENAME multiple maxhits=6").
 
 =back
+
+=head1 AUTHORS
+
+Kent Oyer <kent@mxguardian.net>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2023 MXGuardian LLC
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the Apache License 2.0. See the LICENSE file included
+with this distribution for more information.
+
+This plugin is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 =cut
 
