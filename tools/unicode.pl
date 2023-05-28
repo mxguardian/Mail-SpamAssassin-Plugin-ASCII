@@ -14,17 +14,18 @@ use utf8;
  tools/unicode.pl <command> [options]
 
  Commands
-     import_ucd           Import Unicode Character Database
-     decompose            Generate ASCII equivalents by decomposing characters
-     import_confusables   Import confusables from unicode.org
-     list_homoglyphs      List homoglyphs
-     list_zw              List all zero-width characters
-     find_missing         Find missing characters
-     list_ascii           List ASCII characters
-     generate_map         Generate character map data for use in ASCII.pm
-     test_map             Test character map
-     replace_tags         Generate replace_tag code suitable for use in SpamAssassin
-     explain              Decode a string of unicode characters
+     import_ucd                Import Unicode Character Database
+     decompose                 Generate ASCII equivalents by decomposing characters
+     import_confusables        Import confusables from unicode.org
+     list_all                  List all Unicode characters
+     list_zw                   List all zero-width characters
+     list_homoglyphs [<char>]  List homoglyphs of <char> or all characters if <char> is not specified
+     find_missing              Find missing characters
+     list_ascii                List ASCII characters
+     generate_map              Generate character map data for use in ASCII.pm
+     test_map                  Test character map
+     replace_tags              Generate replace_tag code suitable for use in SpamAssassin
+     explain <string>          Decode a string of unicode characters
 
 =head1 AUTHORS
 
@@ -61,6 +62,7 @@ my $dispatch = {
     'import_confusables' => \&import_confusables,
     'list_homoglyphs'    => \&list_homoglyphs,
     'list_zw'            => \&list_zw,
+    'list_all'           => \&list_all,
     'find_missing'       => \&find_missing,
     'list_ascii'         => \&list_ascii,
     'generate_map'       => \&generate_map,
@@ -371,15 +373,18 @@ sub decompose {
 #
 sub replace_tags {
     my $chars = $db->fetchAll("SELECT ascii,hcode FROM `chars` WHERE ascii IS NOT NULL ORDER BY ascii");
-    my $re;
+    my @patterns;
     my $last_ascii = '';
     foreach my $char (@$chars) {
         if ( uc($char->{ascii}) ne $last_ascii ) {
-            print "replace_tag    ${last_ascii}2    (?:$re)\n" if defined($re) && $last_ascii =~ /^[A-Z]$/;
+            if ( $last_ascii =~ /^[A-Z]$/ ) {
+                my $re = generate_regex(@patterns);
+                print "replace_tag    ${last_ascii}1    $re\n";
+            }
             $last_ascii = uc($char->{ascii});
-            $re = hex_to_utf8re($char->{hcode});
+            @patterns = ( lc($char->{ascii}), uc($char->{ascii}), hex_to_utf8re($char->{hcode}) );
         } else {
-            $re .= '|' . hex_to_utf8re($char->{hcode});
+            push(@patterns,hex_to_utf8re($char->{hcode}));
         }
     }
 
@@ -388,7 +393,7 @@ sub replace_tags {
 #
 # List of homoglyphs
 #
-sub list_homoglyphs {
+sub list_all_homoglyphs {
     my $chars = $db->fetchAll("SELECT ascii,hcode FROM `chars` WHERE ascii IS NOT NULL ORDER BY ascii");
     my $str;
     my $last_ascii = '';
@@ -402,6 +407,54 @@ sub list_homoglyphs {
         }
     }
 
+}
+
+#
+# List homoglyphs of a given character
+#
+sub list_homoglyphs {
+    my ($ascii) = @ARGV;
+    if ( !defined($ascii) ) {
+        return list_all_homoglyphs();
+    }
+    my $chars = $db->fetchAll("SELECT * FROM `chars` WHERE ascii = ? ORDER BY dcode",$ascii);
+    foreach my $char (@$chars) {
+        my $hcode = $char->{hcode};
+        # as a unicode string
+        my $str = chr(hex($hcode));
+        # utf8 in bytes
+        my $utf8bytes = encode("utf8", $str);
+        # utf8bytes in hex
+        my $utf8hex = uc(unpack("H*", $utf8bytes));
+        $utf8hex =~ s/(..)/\\x$1/g;
+
+        my $desc = $char->{description}||'';
+        $desc = decode("utf8",$desc);
+        printf "U+%-5s %-17s %s\n", $hcode, $utf8hex, $desc;
+    }
+}
+
+
+
+#
+# list all Unicode characters
+#
+sub list_all {
+    my $chars = $db->fetchAll("SELECT * FROM `chars` ORDER BY dcode");
+    foreach my $char (@$chars) {
+        my $hcode = $char->{hcode};
+        # as a unicode string
+        my $str = chr(hex($hcode));
+        # utf8 in bytes
+        my $utf8bytes = encode("utf8", $str);
+        # utf8bytes in hex
+        my $utf8hex = uc(unpack("H*", $utf8bytes));
+        $utf8hex =~ s/(..)/\\x$1/g;
+
+        my $desc = $char->{description}||'';
+        $desc = decode("utf8",$desc);
+        printf "U+%s %-15s %s\n", $hcode, $utf8hex, $desc;
+    }
 }
 
 #
@@ -484,6 +537,7 @@ A\x{20DD}
 あ
 The pass͏word­ for your ­em͏ail ­expi͏res
 💚🍁32 Years older Div0rced🍁💚Un-happy🍁💚BJ MOM💘Ready for fu*c*k💋💘
+🇺🇿VIVA LA PATRIA🇺🇿
 EOF
 
     my %map;
@@ -549,15 +603,27 @@ sub find_missing {
 
 sub explain {
     my $sel_char = $db->prepare("SELECT * FROM `chars` WHERE dcode = ?");
-    my $str = decode_utf8(join(' ',@ARGV));
-    foreach my $char (split //,$str) {
-        my $dcode = ord($char);
-        $sel_char->execute($dcode);
-        my $row = $sel_char->fetchrow_hashref;
-        my $hcode = $row->{hcode};
-        # print ASCII in green, others in yellow
-        my $color = $dcode < 128 ? '0' : $dcode < 256 ? '33': '31';
-        printf "\e[%sm%-50s U+%04X %s\e[0m\n", $color, decode_utf8($row->{description}), $dcode, hex_to_utf8re($hcode);
+    foreach my $str (@ARGV) {
+        if ( $str =~ /^U\+([0-9a-f]{4,5})/i ) {
+            $str = chr(hex($1));
+        } elsif ( $str =~ /^(\\x[0-9a-f]{2})+/i ) {
+            my $new_str = '';
+            while ( $str =~ s/\\x([0-9a-f]{2})//i ) {
+                $new_str .= chr(hex($1));
+            }
+            $str = decode("utf8",$new_str,Encode::FB_WARN);
+        } else {
+            $str = decode("utf8",$str,Encode::FB_WARN);
+        }
+        foreach my $char (split //,$str) {
+            my $dcode = ord($char);
+            $sel_char->execute($dcode);
+            my $row = $sel_char->fetchrow_hashref;
+            my $hcode = $row->{hcode};
+            # print ASCII in green, others in yellow
+            my $color = $dcode < 128 ? '0' : $dcode < 256 ? '33': '31';
+            printf "\e[%sm%-50s U+%04X %s\e[0m\n", $color, decode_utf8($row->{description}), $dcode, hex_to_utf8re($hcode);
+        }
     }
 }
 
@@ -585,4 +651,67 @@ sub unicode_to_utf8re {
     # convert bytes to re
     my $re = join('', map {sprintf('\x%02X', ord($_))} split //, $bytes);
     return $re;
+}
+
+sub generate_regex {
+    my @strings = @_;
+
+    return '' unless @strings;
+
+    my %hash;
+    foreach my $string (@strings) {
+        $string =~ s/\\x([0-9a-f]{2})/chr(hex($1))/gei;
+        my $h = \%hash;
+        foreach my $char (split //, $string) {
+            $h->{$char} = {} unless exists $h->{$char};
+            $h = $h->{$char};
+        }
+    }
+    my $regex = parse_tree(\%hash);
+    $regex =~ s/([^ -~])/sprintf("\\x%X", ord($1))/ge;
+    $regex = "(:?$regex)" unless $regex =~ /^\(/;
+    return $regex;
+
+    sub parse_tree {
+        my ($h) = @_;
+
+        my @patterns;
+        my $max_len = 0;
+        foreach my $key (sort keys %$h) {
+            my $str;
+            if (keys %{$h->{$key}}) {
+                $str =  $key . parse_tree($h->{$key});
+            } else {
+                $str = $key;
+            }
+            push @patterns, $str;
+            $max_len = length($str) if length($str) > $max_len;
+        }
+
+        return '' unless @patterns;
+        return $patterns[0] if @patterns == 1;
+        return '(?:' . join('|', @patterns) . ')' if $max_len > 1;
+
+        # If all patterns are single characters, we can use a character class
+        # and we can look for ranges
+        my @ranges;
+        my $prev = ord($patterns[0]);
+        my $start = $prev;
+        for (my $i = 1; $i < @patterns; $i++) {
+            my $ord = ord($patterns[$i]);
+            if ($ord == $prev + 1) {
+                $prev = $ord;
+            } else {
+                push @ranges, $start == $prev ? chr($start)
+                    : $start+1 == $prev ? chr($start) . chr($prev)
+                    : chr($start) . '-' . chr($prev);
+                $start = $prev = $ord;
+            }
+        }
+        push @ranges, $start == $prev ? chr($start)
+            : $start+1 == $prev ? chr($start) . chr($prev)
+            : chr($start) . '-' . chr($prev);
+        return '[' . join('', @ranges) . ']';
+    }
+
 }
