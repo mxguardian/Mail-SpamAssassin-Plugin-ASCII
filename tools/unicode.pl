@@ -372,6 +372,17 @@ sub decompose {
 # Generate replace_tags
 #
 sub replace_tags {
+
+    my %defaults = (
+        'A' => [ qw(@ 4) ],
+        'B' => [ qw(8 6) ],
+        'E' => [ qw(3) ],
+        'I' => [ qw(l 1) ],
+        'L' => [ qw(I 1) ],
+        'O' => [ qw(0) ],
+        'S' => [ qw(5 $) ],
+    );
+
     my $chars = $db->fetchAll("SELECT ascii,hcode FROM `chars` WHERE ascii IS NOT NULL ORDER BY ascii");
     my @patterns;
     my $last_ascii = '';
@@ -383,6 +394,7 @@ sub replace_tags {
             }
             $last_ascii = uc($char->{ascii});
             @patterns = ( lc($char->{ascii}), uc($char->{ascii}), hex_to_utf8re($char->{hcode}) );
+            push @patterns, @{$defaults{$last_ascii}} if (defined($defaults{$last_ascii}));
         } else {
             push(@patterns,hex_to_utf8re($char->{hcode}));
         }
@@ -669,7 +681,8 @@ sub generate_regex {
     }
     my $regex = parse_tree(\%hash);
     $regex =~ s/([^ -~])/sprintf("\\x%X", ord($1))/ge;
-    $regex = "(:?$regex)" unless $regex =~ /^\(/;
+    $regex = "(?:$regex)" unless $regex =~ /^\(/;
+    $regex =~ s/^\(\?:/\(\?-i:/;    # disable case-insensitive matching
     return $regex;
 
     sub parse_tree {
