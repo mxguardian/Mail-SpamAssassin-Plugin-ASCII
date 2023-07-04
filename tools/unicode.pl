@@ -4,7 +4,6 @@ use warnings FATAL => 'all';
 use MXG::App;
 use MXG::Service::DB;
 use Pod::Usage;
-use Data::Dumper;
 use JSON;
 use Encode;
 use utf8;

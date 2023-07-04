@@ -3,7 +3,6 @@ use strict;
 use warnings FATAL => 'all';
 use Test::More;
 use Mail::SpamAssassin;
-use Data::Dumper;
 
 my $data_dir = 't/data';
 my $spamassassin = Mail::SpamAssassin->new(
@@ -88,11 +87,10 @@ foreach my $file (@files) {
     my $pms = $spamassassin->check($msg);
     close $fh;
     delete $_->{part} for @{$pms->{attachments}};
-    # print $pms->get_report();
 
     my $hits = $pms->get_names_of_tests_hit_with_scores_hash();
     my $pattern_hits = $pms->{pattern_hits};
-    # print Dumper($hits);
+
     foreach my $test (keys %$hits) {
         delete $hits->{$test} unless $test =~ /^ASCII_/;
     }
@@ -102,6 +100,3 @@ foreach my $file (@files) {
     is_deeply($hits, $file->{hits}, $file->{name});
     is_deeply($pattern_hits, $file->{pattern_hits}, $file->{name});
 }
-
-
-
