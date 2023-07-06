@@ -15,7 +15,6 @@ use strict;
 use warnings FATAL => 'all';
 use v5.12;
 use Encode;
-use Data::Dumper;
 use utf8;
 
 =encoding utf8
