@@ -24,7 +24,8 @@ use utf8;
      generate_map              Generate character map data for use in ASCII.pm
      test_map                  Test character map
      replace_tags              Generate replace_tag code suitable for use in SpamAssassin
-     explain <string>          Decode a string of unicode characters
+     convert <string>          Convert a string of unicode characters to ASCII
+     explain <string>          Decode a string of unicode characters and output detailed information
 
 =head1 AUTHORS
 
@@ -67,6 +68,7 @@ my $dispatch = {
     'generate_map'       => \&generate_map,
     'test_map'           => \&test_map,
     'replace_tags'       => \&replace_tags,
+    'convert'            => \&convert,
     'explain'            => \&explain,
 };
 
@@ -535,9 +537,6 @@ sub generate_map {
 
 sub test_map {
 
-    use lib 'lib';
-    use Mail::SpamAssassin::Plugin::ASCII;
-
     my $body = <<"EOF";
 Ýou hãve a nèw vòice-mãil
 PαyPal
@@ -550,6 +549,18 @@ The pass͏word­ for your ­em͏ail ­expi͏res
 💚🍁32 Years older Div0rced🍁💚Un-happy🍁💚BJ MOM💘Ready for fu*c*k💋💘
 🇺🇿VIVA LA PATRIA🇺🇿
 EOF
+
+    convert($body);
+
+}
+
+sub convert {
+
+    my $body = @_ ? join(' ',@_) : join(' ',@ARGV);
+    $body = decode("utf8",$body,Encode::FB_WARN) unless utf8::is_utf8($body);
+
+    use lib 'lib';
+    use Mail::SpamAssassin::Plugin::ASCII;
 
     my %map;
     while (<Mail::SpamAssassin::Plugin::ASCII::DATA>) {
@@ -572,7 +583,8 @@ EOF
     # $test_string = NFKD($test_string);
     # $test_string =~ s/\p{Combining_Mark}//g;
 
-    print $body;
+    chomp $body;
+    print $body,"\n";
 
 }
 
