@@ -113,7 +113,7 @@ implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 =cut
 
-our $VERSION = 0.19;
+our $VERSION = 0.20;
 
 use Mail::SpamAssassin::Plugin;
 use Mail::SpamAssassin::Logger qw(would_log);
@@ -122,6 +122,17 @@ use Mail::SpamAssassin::Util qw(compile_regexp &is_valid_utf_8 &untaint_var);
 our @ISA = qw(Mail::SpamAssassin::Plugin);
 
 my %char_map;
+
+UNITCHECK {
+    # build character map from __DATA__ section
+    while (<DATA>) {
+        chomp;
+        my ($key,$value) = split /\s+/;
+        my $ascii = join('', map { chr(hex($_)) } split /\+/, $value);
+        $char_map{chr(hex($key))} = $ascii;
+    }
+    close DATA;
+};
 
 # constructor
 sub new {
@@ -134,29 +145,12 @@ sub new {
     bless ($self, $class);
 
     $self->set_config($mailsaobject->{conf});
-    $self->load_map();
 
     return $self;
 }
 
 sub dbg { Mail::SpamAssassin::Logger::dbg ("ASCII: @_"); }
 sub info { Mail::SpamAssassin::Logger::info ("ASCII: @_"); }
-
-sub load_map {
-    my ($self) = @_;
-
-    return if %char_map;
-
-    # build character map from __DATA__ section
-    while (<DATA>) {
-        chomp;
-        my ($key,$value) = split /\s+/;
-        my $ascii = join('', map { chr(hex($_)) } split /\+/, $value);
-        $char_map{chr(hex($key))} = $ascii;
-    }
-    close DATA;
-}
-
 
 sub set_config {
     my ($self, $conf) = @_;
