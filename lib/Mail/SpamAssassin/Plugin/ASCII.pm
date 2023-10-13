@@ -13,6 +13,7 @@
 package Mail::SpamAssassin::Plugin::ASCII;
 use strict;
 use warnings FATAL => 'all';
+no warnings 'redefine';
 use v5.12;
 use Encode;
 use utf8;
@@ -113,7 +114,7 @@ implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 =cut
 
-our $VERSION = 0.20;
+our $VERSION = 0.21;
 
 use Mail::SpamAssassin::Plugin;
 use Mail::SpamAssassin::Logger qw(would_log);
@@ -193,9 +194,6 @@ sub set_config {
 sub finish_parsing_end {
     my ($self, $opts) = @_;
     my $conf = $opts->{conf};
-
-    # prevent warnings about redefining subs
-    undef &_run_ascii_rules;
 
     # only compile rules if we have any
     return unless exists $conf->{ascii_rules};
@@ -287,10 +285,14 @@ EOF
 
 }
 
+sub _run_ascii_rules {
+    # placeholder
+}
+
 sub parsed_metadata {
     my ($self, $opts) = @_;
 
-    $self->_run_ascii_rules($opts) if $self->can('_run_ascii_rules');
+    $self->_run_ascii_rules($opts);
 
 }
 
