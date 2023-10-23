@@ -1,0 +1,142 @@
+Received: from in01.mxguardian.net ([172.16.1.170])
+	by localhost (cf02.mxguardian.net [172.16.2.237]) (MXG, port 10024)
+	with ESMTP id dzyMU4nCDW_c for <redacted@example.com>;
+	Fri, 20 Oct 2023 15:20:53 +0000 (UTC)
+Received: from mail-lf1-x12b.google.com (mail-lf1-x12b.google.com [IPv6:2a00:1450:4864:20::12b])
+	by in01.mxguardian.net (Postfix) with ESMTPS id 968A0452F3
+	for <redacted@example.com>; Fri, 20 Oct 2023 15:20:52 +0000 (UTC)
+Received: by mail-lf1-x12b.google.com with SMTP id 2adb3069b0e04-507be298d2aso1338747e87.1
+        for <redacted@example.com>; Fri, 20 Oct 2023 08:20:52 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1697815251; x=1698420051; darn=triffo.net;
+        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=cMW7Dx7tBIB0mNA5M545NWCLTF19aTWdqlSkYh1yKYI=;
+        b=Aeu4LRYgD0tzOVIkrQHMI1hVvfpOGqlqh+ehDTIANxSjvziGdG2Z6QPALlP3Re4ZUQ
+         eQtZLShm7TNdMe1kuNkj4jeFOkClw3bT6zlsGewHK/HsS207Tar5+CvroafDliGui4vX
+         ra1JWipYkA5h33FK1Z3QXZi/8wywZmyoIY4DmOOBPuR4dpMNPk1XtcFHXnoaosUp5sBN
+         cH1JcUR1TwYCQroaG7fmz5egZ67XdHyIUqBNkXyRNMq1FtQlfbvtCwzxMiqdbEbxxnFI
+         gs+ywVttJ6Sg9LnuXN9LYcdqBWoVRC66Ld6iC+Ol1ot87cO1/GTCQ4Gw2HgUdWdrtv7A
+         9jNg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1697815251; x=1698420051;
+        h=to:subject:message-id:date:from:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=cMW7Dx7tBIB0mNA5M545NWCLTF19aTWdqlSkYh1yKYI=;
+        b=YOZFm8ebJ3B18VZqh25FOEq7IAnB9pt40HftXNNS4GI8Fw7CGB6KxZFD576XIzFJ71
+         UUgdXPKJD7c0LxdwgDJUjuv+UJob39kFmyDSS8FQs7l1p/Faofji+epOsY0VEP32f6JL
+         CiKg8+eVo24XDlUI07xdPb33CJldxX+mMiG/IpUZso92tigT8ACQhd3AVsdD+2ZxUK/W
+         xEt8GwJ8yQII2/1JGYBvjYyd3g4UJc8+CpE+YzEwF64Liurf3ewlC5xSgly/NeZK3UuG
+         kIvCoYoThL41ZS4j8fssWV3hLNPz/vgIpqc/kdWqw0INxkFV0m5fZM7D5WnsTANPsm+P
+         fhtw==
+X-Gm-Message-State: AOJu0YyDmdK1+sgrzFzbStGKt9wPRlRo2bbZGcW39nlhbUU1lakQfLP1
+	poTEXdaLxu/C/XuJRsj4Mz1FaMaRmw1rLw7coTHLGueGoSz+WZG9
+X-Google-Smtp-Source: AGHT+IHlFHj7rNc5Ens37yWL5KetgzjmTnnCJVp70Fd2euffDdFrD4haghSk0ANu1vPSo74+nXUwJaJJ2TYynCTeQXw=
+X-Received: by 2002:ac2:46e9:0:b0:503:3cc:cd39 with SMTP id
+ q9-20020ac246e9000000b0050303cccd39mr1554546lfo.8.1697815250639; Fri, 20 Oct
+ 2023 08:20:50 -0700 (PDT)
+MIME-Version: 1.0
+From: Eleanor Rudyard <eleanorrudyard4@gmail.com>
+Date: Fri, 20 Oct 2023 20:50:39 +0530
+Message-ID: <CAPi0-pgjT4RzOZJX57=COp4XTBETgdpVLMKwAhDTvuSmPzfPKA@mail.gmail.com>
+Subject: Thank you for your purchase - #GS2846272560
+To: "REDACTED" <recipient@example.com>
+Content-Type: multipart/alternative; boundary="000000000000e89e9e0608276ae2"
+
+--000000000000e89e9e0608276ae2
+Content-Type: text/plain; charset="UTF-8"
+Content-length: 703
+
+*Date - 20. 10. 2023*
+*GEEK* *TECH*
+------------------------------
+
+*Order no - #GS2846272560*
+------------------------------
+
+Hey, dave
+
+Your previous plan with us is no longer valid.
+A charge of $ 391.99 has been placed to your account and will appear in
+your monthly statements within 12 hours.
+
+* Product overview: *
+
+Product name - Tech-Net PC 23
+User - O2 - PC
+Product key - GK23zB7Byr
+period - 36 months
+* Amount - $ 391.99*
+
+
+
+*Status -  Completed Billed to - redacted@example.com <redacted@example.com>*
+------------------------------
+
+Your paid amount will automatically appear on your account.
+Please call us within 24 to 48 hrs to cancel your plan at:
+
+*+**I**s**(83O).**gh**26I.**ny**423I*
+
+--000000000000e89e9e0608276ae2
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Content-length: 3306
+
+<div dir=3D"ltr"><table style=3D"width:100%">
+    <tbody>
+        <tr>
+            <td style=3D"width:100%;background-color:rgb(248,248,248);borde=
+r:solid rgb(255,255,255)">
+                <div style=3D"text-align:left"><strong><span style=3D"font-=
+family:Calibri,sans-serif;font-size:14px">Date - 20. 10. 2023</span></stron=
+g></div>
+                <div style=3D"text-align:center"><span style=3D"font-size:4=
+8px;font-family:Calibri,sans-serif"><strong><span style=3D"color:rgb(0,0,0)=
+">GEEK</span></strong><strong>=C2=A0</strong><strong><span style=3D"color:r=
+gb(61,142,185)">TECH</span></strong></span></div>
+                <hr style=3D"text-align:center">
+                <p style=3D"text-align:center"><span style=3D"font-family:C=
+alibri,sans-serif"><strong>Order no - #GS2846272560</strong></span></p>
+                <hr style=3D"text-align:center">
+                <p style=3D"text-align:center"><span style=3D"font-family:C=
+alibri,sans-serif">Hey, dave</span></p>
+                <p style=3D"text-align:center"><span style=3D"font-size:16p=
+x"><span style=3D"color:rgb(0,0,0);background-color:rgb(248,248,248);font-f=
+amily:Calibri,sans-serif">Your previous plan with us is no longer valid.<br=
+>A charge of $ 391.99 has been placed to your account and will appear in yo=
+ur monthly statements within 12 hours.</span></span></p>
+                <p style=3D"text-align:center"><span style=3D"font-family:C=
+alibri,sans-serif"><u><strong><span style=3D"font-size:20px">=C2=A0Product =
+overview:=C2=A0</span></strong></u></span></p>
+                <p style=3D"text-align:center"><span style=3D"font-size:16p=
+x"><span style=3D"font-family:Calibri,sans-serif">Product name - Tech-Net P=
+C 23<br>User - O2 - PC<br>Product key - GK23zB7Byr<br>period - 36 months</s=
+pan><span style=3D"background-color:rgb(239,239,239);font-family:Calibri,sa=
+ns-serif"><strong><br>=C2=A0Amount - $ 391.99</strong></span></span></p>
+                <p style=3D"text-align:center"><span style=3D"font-family:C=
+alibri,sans-serif"><br></span></p>
+                <p style=3D"text-align:center"><span style=3D"font-size:16p=
+x;font-family:Calibri,sans-serif"><strong>Status - <span style=3D"backgroun=
+d-color:rgb(65,168,95);color:rgb(255,255,255)">=C2=A0Completed=C2=A0</span>=
+<br>Billed to - <a href=3D"mailto:redacted@example.com">redacted@example.co=
+m</a></strong></span></p>
+                <hr style=3D"text-align:center">
+                <p style=3D"text-align:center"><span style=3D"font-size:16p=
+x;font-family:Calibri,sans-serif">Your paid amount will automatically appea=
+r on your account.<br>Please call us within 24 to 48 hrs</span><span style=
+=3D"font-size:20px;font-family:Calibri,sans-serif">=C2=A0</span><span style=
+=3D"font-size:16px;font-family:Calibri,sans-serif">to cancel your plan at:<=
+/span></p>
+                <p style=3D"text-align:center"><span style=3D"font-size:26p=
+x;font-family:Calibri,sans-serif"><strong>+</strong><strong>I</strong><stro=
+ng><span style=3D"color:rgb(248,248,248)">s</span></strong><strong>(83O).</=
+strong><strong><span style=3D"color:rgb(248,248,248)">gh</span></strong><st=
+rong>26I.</strong><strong><span style=3D"color:rgb(248,248,248)">ny</span><=
+/strong><strong>423I</strong></span></p>
+            </td>
+        </tr>
+    </tbody>
+</table></div>
+
+--000000000000e89e9e0608276ae2--

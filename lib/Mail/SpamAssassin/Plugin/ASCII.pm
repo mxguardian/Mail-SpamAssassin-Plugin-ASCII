@@ -98,7 +98,7 @@ implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 =cut
 
-our $VERSION = 0.99;
+our $VERSION = 1.0;
 
 use Mail::SpamAssassin::Plugin;
 use Mail::SpamAssassin::Logger qw(would_log);
@@ -279,8 +279,9 @@ sub _get_ascii_body {
         return $pms->{ascii_body};
     }
 
+    my $msg = $pms->get_message();
     my @lines;
-    foreach (@{ $pms->get_decoded_stripped_body_text_array() }) {
+    foreach (@{ $msg->get_visible_rendered_body_text_array() }) {
         push @lines, convert_to_ascii($_);
     }
     $pms->{ascii_body} = \@lines;

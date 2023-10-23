@@ -37,6 +37,8 @@ my $spamassassin = Mail::SpamAssassin->new(
             tflags __ASCII_LAWN      multiple maxhits=5
             meta   ASCII_LAWN        __ASCII_LAWN == 5
 
+            ascii   ASCII_PHONE_NUM  /\b[1I]?[\dOIl]{3}[^a-zA-Z0-9]+[\dOIl]{3}[^a-zA-Z0-9]+[\dOIl]{4}\b/
+
 EOF
             ,
     }
@@ -69,9 +71,20 @@ my @files = (
         'hits'       => {
             'ASCII_BIGBAG' => 1,
             'ASCII_LAWN' => 1,
+            'ASCII_PHONE_NUM' => 1,
         },
         'pattern_hits' => {
-            'ASCII_BIGBAG' => 'www.bigbag.co.za',
+            'ASCII_BIGBAG'    => 'www.bigbag.co.za',
+            'ASCII_PHONE_NUM' => '011 083 8044',
+        }
+    },
+    {
+        'name'       => 'msg4.eml',
+        'hits'       => {
+            'ASCII_PHONE_NUM' => 1,
+        },
+        'pattern_hits' => {
+            'ASCII_PHONE_NUM' => '83O).26I.423I',
         }
     },
 );
