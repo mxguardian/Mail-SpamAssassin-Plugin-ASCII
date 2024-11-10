@@ -2,7 +2,7 @@
 use strict;
 use warnings FATAL => 'all';
 use MXG::App;
-use MXG::Service::DB;
+use MXG::DB::MySQL;
 use Pod::Usage;
 use JSON;
 use Encode;
@@ -49,7 +49,7 @@ binmode STDOUT, ":utf8";
 binmode STDERR, ":utf8";
 
 my $kernel = MXG::App->new();
-my $db = MXG::Service::DB->new(
+my $db = MXG::DB::MySQL->new(
     $kernel->config('database_host'),
     'unicode_db',
     $kernel->config('database_user'),
