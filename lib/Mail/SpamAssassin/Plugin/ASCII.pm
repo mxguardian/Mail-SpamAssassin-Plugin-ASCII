@@ -33,9 +33,7 @@ Mail::SpamAssassin::Plugin::ASCII - SpamAssassin plugin to convert non-ASCII cha
 
 =head1 DESCRIPTION
 
-This plugin defines a new rule type called C<ascii> that is used to match
-against an ASCII-only version of the message body. When a message is scanned,
-this plugin makes a copy of the message body, converts it to ASCII characters
+This plugin makes a copy of the message body, converts it to ASCII characters
 and then runs rules against the converted text. This is useful for
 catching spam that uses non-ASCII characters to obfuscate words. For example,
 a message containing the text
@@ -46,18 +44,18 @@ would be converted to
 
     You have a new voice-mail
 
-before processing the rules. The actual conversion is done by the Text::ASCII::Convert module.
-See L<Text::ASCII::Convert> for details.
+=head1 RULE DEFINITION
 
-=head1 REQUIREMENTS
+To define a rule that matches against the ASCII version of the message body,
+use the C<ascii> rule type. The rule definition is similar to a C<body> rule
+definition, but the pattern is a regular expression that matches the ASCII
+version of the text.
 
-=over
+=head2 RULE DEFINITION EXAMPLE
 
-=item SpamAssassin 3.4.0 or later
-
-=item Text::ASCII::Convert
-
-=back
+    ascii      RULE_NAME   /voice\W?mail/i
+    describe   RULE_NAME   Message contains the word "voice mail"
+    score      RULE_NAME   0.001
 
 =head1 TFLAGS
 
@@ -81,6 +79,52 @@ the hits (e.g. __RULENAME > 5), this is a way to avoid wasted extra work (use "t
 
 =back
 
+=head1 EVAL RULES
+
+=over
+
+=item ascii_unicode_obfuscation
+
+This rule evaluates to true if the message body contains any words from a pre-defined list that are
+obfuscated by using non-ASCII characters. The rule takes an optional argument that specifies the maximum
+number of words to check. If the optional argument is not provided, all words in the message body are checked.
+
+Example:
+
+    body ASCII_OBFUSCATION eval:ascii_unicode_obfuscation(100)
+    score ASCII_OBFUSCATION 1.0
+    describe ASCII_OBFUSCATION Obfuscated word found
+
+=back
+
+=head1 CONFIGURATION
+
+=over
+
+=item ascii_obfuscation_words
+
+This option specifies a list of words that are considered obfuscated if they contain non-ASCII characters.
+The words are case-insensitive. Multiple words can be specified on the same line, separated by whitespace.
+This option can be used multiple times to add more words to the list.
+
+Example:
+
+    ascii_obfuscation_words   norton mcafee symantec
+    ascii_obfuscation_words   microsoft apple google
+    ascii_obfuscation_words   dropbox docusign adobe
+
+=back
+
+=head1 REQUIREMENTS
+
+=over
+
+=item SpamAssassin 3.4.0 or later
+
+=item Text::ASCII::Convert
+
+=back
+
 =head1 AUTHORS
 
 Kent Oyer <kent@mxguardian.net>
@@ -98,15 +142,36 @@ implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 =cut
 
-our $VERSION = 1.0;
+our $VERSION = 1.2;
 
 use Mail::SpamAssassin::Plugin;
 use Mail::SpamAssassin::Logger qw(would_log);
 use Mail::SpamAssassin::Util qw(compile_regexp &untaint_var);
 use Encode;
 use Text::ASCII::Convert;
+use Unicode::Normalize;
 
 our @ISA = qw(Mail::SpamAssassin::Plugin);
+
+my %dictionary;
+
+# Define a hash for common ligature replacements
+my %ligatures = (
+    "\x{FB01}" => 'fi',   # LATIN SMALL LIGATURE FI
+    "\x{FB02}" => 'fl',   # LATIN SMALL LIGATURE FL
+    "\x{00C6}" => 'AE',   # LATIN CAPITAL LETTER AE
+    "\x{00E6}" => 'ae',   # LATIN SMALL LETTER AE
+    "\x{0152}" => 'OE',   # LATIN CAPITAL LIGATURE OE
+    "\x{0153}" => 'oe',   # LATIN SMALL LIGATURE OE
+    "\x{0132}" => 'IJ',   # LATIN CAPITAL LIGATURE IJ
+    "\x{0133}" => 'ij',   # LATIN SMALL LIGATURE IJ
+    "\x{FB00}" => 'ff',   # LATIN SMALL LIGATURE FF
+    "\x{FB03}" => 'ffi',  # LATIN SMALL LIGATURE FFI
+    "\x{FB04}" => 'ffl',  # LATIN SMALL LIGATURE FFL
+);
+
+# Precompile the regex pattern using qr// and join in a single statement
+my $ligature_regex = qr/[@{[join '', keys %ligatures]}]/;
 
 # constructor
 sub new {
@@ -119,6 +184,8 @@ sub new {
     bless ($self, $class);
 
     $self->set_config($mailsaobject->{conf});
+
+    $self->register_eval_rule("ascii_unicode_obfuscation");
 
     return $self;
 }
@@ -157,6 +224,17 @@ sub set_config {
                     $Mail::SpamAssassin::Conf::TYPE_EMPTY_TESTS);
 
 
+            }
+        },{
+            setting => 'ascii_obfuscation_words',
+            is_priv => 1,
+            type    => $Mail::SpamAssassin::Conf::CONF_TYPE_STRING,
+            code    => sub {
+                my ($self, $key, $value, $line) = @_;
+                my @words = split(/\s+/, $value);
+                foreach my $word (@words) {
+                    $dictionary{lc $word} = 1;
+                }
             }
         }
     ));
@@ -285,6 +363,37 @@ sub _get_ascii_body {
         push @lines, convert_to_ascii($_);
     }
     $pms->{ascii_body} = \@lines;
+}
+
+sub ascii_unicode_obfuscation {
+    my ($self, $pms, $body, $max_words) = @_;
+
+    my %found;
+    my $count = 0;
+    ALL: for (@$body) {
+        my $line = $_;
+        # Make sure we have Perl chars
+        unless (utf8::is_utf8($line)) {
+            $line = eval { decode("UTF-8", $line) } || $line;
+        }
+        # Normalize the line to remove combining characters (this is important for \W in the regex below)
+        $line = NFC($line);
+        # Replace common ligatures (to prevent false positives)
+        $line =~ s/$ligature_regex/$ligatures{$&}/g;
+        # Split the line into words
+        for my $word (split(/\s+/,$line)) {
+            last ALL if defined $max_words && ++$count > $max_words;
+            # Remove non-word characters from the beginning and end of the word
+            $word =~ s/^[\W\p{M}\p{Cf}]+|[\W\p{M}\p{Cf}]+$//g;
+            my $ascii = convert_to_ascii($word);
+            next if $ascii eq $word;
+            $ascii = lc $ascii;
+            next unless exists $dictionary{$ascii};
+            dbg("ascii: found obfuscated word '$ascii'");
+            $found{$ascii} = 1;
+        }
+    }
+    return scalar keys %found;
 }
 
 1;
