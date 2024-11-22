@@ -368,9 +368,13 @@ sub _get_ascii_body {
 sub ascii_unicode_obfuscation {
     my ($self, $pms, $body, $max_words) = @_;
 
+    my $from_name = $pms->get('From:name');
+
     my %found;
     my $count = 0;
-    ALL: for (@$body) {
+    ALL: for ($from_name , @$body) {
+        next unless defined $_;
+        # Make a copy
         my $line = $_;
         # Make sure we have Perl chars
         unless (utf8::is_utf8($line)) {
