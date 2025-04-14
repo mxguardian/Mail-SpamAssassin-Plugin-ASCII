@@ -142,7 +142,7 @@ implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 =cut
 
-our $VERSION = 1.2;
+our $VERSION = 1.3;
 
 use Mail::SpamAssassin::Plugin;
 use Mail::SpamAssassin::Logger qw(would_log);
@@ -385,7 +385,7 @@ sub ascii_unicode_obfuscation {
         # Replace common ligatures (to prevent false positives)
         $line =~ s/$ligature_regex/$ligatures{$&}/g;
         # Split the line into words
-        for my $word (split(/\s+/,$line)) {
+        for my $word (split(/[\s\x20-\x2f\x3a-\x40\x5b-\x60\x7b-\x7e]+/,$line)) {
             last ALL if defined $max_words && ++$count > $max_words;
             # Remove non-word characters from the beginning and end of the word
             $word =~ s/^[\W\p{M}\p{Cf}]+|[\W\p{M}\p{Cf}]+$//g;

@@ -39,6 +39,9 @@ my $spamassassin = Mail::SpamAssassin->new(
 
             ascii   ASCII_PHONE_NUM  /\b[1I]?[\dOIl]{3}[^a-zA-Z0-9]+[\dOIl]{3}[^a-zA-Z0-9]+[\dOIl]{4}\b/
 
+            body    ASCII_UNICODE_OBFU eval:ascii_unicode_obfuscation()
+            ascii_obfuscation_words  password
+
 EOF
             ,
     }
@@ -50,6 +53,7 @@ my @files = (
         'hits'       => {
             'ASCII_OFFICE_365' => 1,
             'ASCII_HELP_DESK' => 1,
+            'ASCII_UNICODE_OBFU' => 1,
         },
         'pattern_hits' => {
             'ASCII_OFFICE_365' => 'Office 365',
@@ -61,6 +65,7 @@ my @files = (
         'hits'       => {
             'ASCII_VOICEMAIL' => 1,
             'ASCII_SUBJ' => 1,
+            'ASCII_UNICODE_OBFU' => 1,
         },
         'pattern_hits' => {
             'ASCII_SUBJ' => 'You have a new voice-mail',
